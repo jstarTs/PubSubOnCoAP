@@ -27,6 +27,6 @@
 	<classpathentry kind="lib" path="JAR/californium-osgi-1.1.0-SNAPSHOT.jar"/>
 	<classpathentry kind="lib" path="JAR/californium-proxy-1.1.0-SNAPSHOT.jar"/>
 	<classpathentry kind="lib" path="JAR/element-connector-1.1.0-SNAPSHOT.jar"/>
-	<classpathentry kind="lib" path="D:/[CSIE]/_Libary/JAR/mysql-connector-java-5.1.39-bin.jar"/>
+	<classpathentry kind="lib" path="JAR/mysql-connector-java-5.1.39-bin.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
