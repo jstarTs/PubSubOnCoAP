@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Created-By: 1.8.0_91 (Oracle Corporation)
+Main-Class: Sink.testSink
+Class-Path: JAR/dom4j-1.6.1.jar JAR/jaxen/jaxen/1.1.1/jaxen-1.1.1.jar JAR/gnu-crypto-2.0.1-bin-r1/gnu-crypto-2.0.1-bin/lib/*.jar JAR/jlibs/jlibs-core/2.2.1/jlibs-core-2.2.1.jar JAR/jlibs/jlibs-visitor/2.2.1/jlibs-visitor-2.2.1.jar JAR/jlibs/jlibs-xml/2.2.1/jlibs-xml-2.2.1.jar JAR/jlibs/jlibs-xmldog/2.2.1/jlibs-xmldog-2.2.1.jar JAR/junit/junit/3.8.1/junit-3.8.1.jar JAR/SaxonHE9-7-0-6J/*.jar

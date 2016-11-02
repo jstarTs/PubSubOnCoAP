@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
+	<classpathentry kind="lib" path="JAR/dom4j-1.6.1.jar"/>
+	<classpathentry kind="lib" path="JAR/gnu-crypto-2.0.1-bin-r1/gnu-crypto-2.0.1-bin/lib/gnu-crypto.jar"/>
+	<classpathentry kind="lib" path="JAR/gnu-crypto-2.0.1-bin-r1/gnu-crypto-2.0.1-bin/lib/javax-security.jar"/>
+	<classpathentry kind="lib" path="JAR/gnu-crypto-2.0.1-bin-r1/gnu-crypto-2.0.1-bin/lib/javax-crypto.jar"/>
+	<classpathentry kind="lib" path="JAR/jaxen/jaxen/1.1.1/jaxen-1.1.1.jar"/>
+	<classpathentry kind="lib" path="JAR/jlibs/jlibs-xmldog/2.2.1/jlibs-xmldog-2.2.1.jar"/>
+	<classpathentry kind="lib" path="JAR/jlibs/jlibs-visitor/2.2.1/jlibs-visitor-2.2.1.jar"/>
+	<classpathentry kind="lib" path="JAR/jlibs/jlibs-xml/2.2.1/jlibs-xml-2.2.1.jar"/>
+	<classpathentry kind="lib" path="JAR/jlibs/jlibs-core/2.2.1/jlibs-core-2.2.1.jar"/>
+	<classpathentry kind="lib" path="JAR/junit/junit/3.8.1/junit-3.8.1.jar"/>
+	<classpathentry kind="lib" path="JAR/SaxonHE9-7-0-6J/saxon9-test.jar"/>
+	<classpathentry kind="lib" path="JAR/SaxonHE9-7-0-6J/saxon9-xqj.jar"/>
+	<classpathentry kind="lib" path="JAR/SaxonHE9-7-0-6J/saxon9he.jar"/>
+	<classpathentry kind="lib" path="JAR/commons-lang3-3.4.jar"/>
+	<classpathentry kind="lib" path="JAR/guava-16.0.1.jar"/>
+	<classpathentry kind="lib" path="JAR/ncoap-core-1.8.3-SNAPSHOT.jar"/>
+	<classpathentry kind="lib" path="JAR/log4j-1.2.17.jar"/>
+	<classpathentry kind="lib" path="JAR/netty-3.9.0.Final.jar"/>
+	<classpathentry kind="lib" path="JAR/slf4j-api-1.6.6.jar"/>
+	<classpathentry kind="lib" path="JAR/ncoap-simple-client-1.8.3-SNAPSHOT.jar"/>
+	<classpathentry kind="lib" path="JAR/ncoap-simple-server-1.8.3-SNAPSHOT.jar"/>
+	<classpathentry kind="lib" path="JAR/californium-core-1.1.0-SNAPSHOT.jar"/>
+	<classpathentry kind="lib" path="JAR/californium-osgi-1.1.0-SNAPSHOT.jar"/>
+	<classpathentry kind="lib" path="JAR/californium-proxy-1.1.0-SNAPSHOT.jar"/>
+	<classpathentry kind="lib" path="JAR/element-connector-1.1.0-SNAPSHOT.jar"/>
+	<classpathentry kind="lib" path="D:/[CSIE]/_Libary/JAR/mysql-connector-java-5.1.39-bin.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
