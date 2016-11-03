@@ -1,13 +1,14 @@
-package PublishSubscribe;
+package PublishSubscribe.FogNode;
+
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-public class MySQL 
+public class FogDB 
 {
 	private static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";  
-	private static final String DB_URL = "jdbc:mysql://140.120.15.136:3306/PubSub";
+	private static final String DB_URL = "jdbc:mysql://140.120.15.136:3306/mydb";
 	
 	private static final String USER = "poshin";
 	private static final String PASS = "QQqq123654@@";

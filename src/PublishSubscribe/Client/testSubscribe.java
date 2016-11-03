@@ -43,9 +43,10 @@ public static void main(String args[]) throws FileNotFoundException {
 			
 			
 			CoapClient client = new CoapClient(uri);
+			CoapResponse response = client.post("testTopic1", 0);
 			
-			CoapResponse response = client.get();
-			//CoapResponse response = client.post("testTopic1", 0);
+			//CoapClient client = new CoapClient(uri+"/testTopic1");
+			//CoapResponse response = client.get();
 			//CoapResponse response = client.delete();
 			
 			

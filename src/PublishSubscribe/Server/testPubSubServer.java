@@ -4,6 +4,9 @@ import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 import org.eclipse.californium.core.CoapServer;
 import org.eclipse.californium.core.network.CoapEndpoint;
@@ -58,6 +61,28 @@ public class testPubSubServer extends CoapServer
      */
     private void updateToFig()
     {
+    	
+    	try 
+    	{
+			Connection conn = PublishSubscribe.MySQL.getConnection();
+    		
+    		Statement st = conn.createStatement();
+			
+			
+			
+			conn.close();
+		} 
+    	catch (ClassNotFoundException e) 
+    	{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
+    	catch (SQLException e) 
+    	{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	
     	
     }
     

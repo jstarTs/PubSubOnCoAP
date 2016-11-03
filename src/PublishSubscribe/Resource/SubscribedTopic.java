@@ -4,6 +4,7 @@ import org.eclipse.californium.core.CoapResource;
 import org.eclipse.californium.core.server.resources.CoapExchange;
 
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -49,27 +50,45 @@ public class SubscribedTopic extends CoapResource
 	{
 		String SQL;
 		
-		exchange.getSourceAddress().getHostAddress();
-		this.getName();
+		//exchange.getSourceAddress().getHostAddress();
+		//this.getName();
 		
 		exchange.respond("Hello test!");
+		
+		
 		
 		//訂閱 topic ( 此加入 topic and subscriber uri)
 		try 
 		{
-			Statement st = PublishSubscribe.MySQL.getConnection().createStatement();
+			Connection conn = PublishSubscribe.MySQL.getConnection();
+			Statement st = conn.createStatement();
 			
-			st.executeUpdate("INSERT INTO SubscriberData VALUES (\'"+this.getName()+"\',\'"+exchange.getSourceAddress().getHostAddress()+"\');");
+			//判斷是否有訂閱過
+			ResultSet result = st.executeQuery("SELECT COUNT(Topic) AS total from SubscriberData where Topic=" + "\'"+this.getName()+"\' and URI=\'"+exchange.getSourceAddress().getHostAddress()+"\';");
+			result.next();
+			if(result.getInt("total")>0)
+				exchange.respond("Repeating subscription");
+			else
+			{
+				st.executeUpdate("INSERT INTO SubscriberData VALUES (\'"+this.getName()+"\',\'"+exchange.getSourceAddress().getHostAddress()+"\');");
+				exchange.respond("Subscribed this Topic");
+			}
+			
+			conn.close();
 		} 
 		catch (ClassNotFoundException e) 
 		{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			System.out.println(e.getMessage());
+			System.out.println(e.getLocalizedMessage());
 		} 
 		catch (SQLException e) 
 		{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			System.out.println(e.getMessage());
+			System.out.println(e.getLocalizedMessage());
 		}
 		
 		

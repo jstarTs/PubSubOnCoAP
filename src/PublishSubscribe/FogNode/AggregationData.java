@@ -8,4 +8,9 @@ public class AggregationData
 		 
 	 }
 	
+	 
+	 public static void main(String[] args)
+	 {
+		 
+	 }
 }
