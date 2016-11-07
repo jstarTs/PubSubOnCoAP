@@ -37,26 +37,28 @@ public class ServerResource extends CoapResource
 			Connection conn = PublishSubscribe.MySQL.getConnection();
 			Statement st = conn.createStatement();
 			
+			String topicname = new String(exchange.getRequestPayload());
+			
 			//創造主題
 			
-			ResultSet result = st.executeQuery("SELECT COUNT(TopicName) AS total from TopicTable where TopicName=" + "\'"+exchange.getRequestPayload()+"\';");
+			ResultSet result = st.executeQuery("SELECT COUNT(TopicName) AS total from TopicTable where TopicName=" + "\'"+topicname+"\';");
 			result.next();
 			if(result.getInt("total")>0)
 			{
 				exchange.respond("Repeating Creation");
-				System.out.println("Repeating Created The Topic : "+ new String(exchange.getRequestPayload()));
+				System.out.println("Repeating Created The Topic : "+ topicname);
 			}	
 			else
 			{
 				
-				st.executeUpdate("INSERT INTO TopicTable VALUES (\'"+exchange.getRequestPayload()+"\');");
+				st.executeUpdate("INSERT INTO TopicTable VALUES (\'"+topicname+"\');");
 				exchange.respond("Created this Topic");
 				
 				//創造主題
-				add(new SubscribedTopic(new String(exchange.getRequestPayload())));
+				add(new SubscribedTopic(topicname));
 				exchange.respond("Thx Creating!");
 				
-				System.out.println("OK Created The Topic : "+ new String(exchange.getRequestPayload()));
+				System.out.println("OK Created The Topic : "+ topicname);
 			}
 			
 			conn.close();
