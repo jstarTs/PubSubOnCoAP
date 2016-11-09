@@ -5,6 +5,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -39,6 +40,7 @@ public class testPubSubServer extends CoapServer
         } catch (SocketException e) {
             System.err.println("Failed to initialize server: " + e.getMessage());
         }
+        //updateToFig();
     }
 	
 	/**
@@ -59,7 +61,7 @@ public class testPubSubServer extends CoapServer
      *   預其update 至  Fog Node ， Subscriber data 、   subscribed  data of topic , 加密key 和  md5 tag
      *   
      */
-    private void updateToFig()
+    private static void updateToFig()
     {
     	
     	try 
@@ -68,9 +70,29 @@ public class testPubSubServer extends CoapServer
     		
     		Statement st = conn.createStatement();
 			
+			String subscriberData = "",Query="";
 			
+			String SQL = "SELECT Topic, URI FROM SubscriberData";
+			
+			ResultSet rs = st.executeQuery(SQL);
+			
+			while(rs.next())
+			{
+				if(rs.isLast())
+				{
+					subscriberData += hash.hashMd5Table.useHashMD5(rs.getString("Topic")) +","+ rs.getString("URI");
+					//subscriberData += rs.getString("Topic")+","+ rs.getString("URI");
+				}
+				else
+				{
+					subscriberData += hash.hashMd5Table.useHashMD5(rs.getString("Topic")) +","+ rs.getString("URI")+",";
+					//subscriberData += rs.getString("Topic")+","+ rs.getString("URI")+",";
+				}
+			}
 			
 			conn.close();
+			
+			System.out.println(subscriberData);
 		} 
     	catch (ClassNotFoundException e) 
     	{

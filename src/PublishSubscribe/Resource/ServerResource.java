@@ -38,6 +38,7 @@ public class ServerResource extends CoapResource
 			Statement st = conn.createStatement();
 			
 			String topicname = new String(exchange.getRequestPayload());
+			String topicHashMD5 = hash.hashMd5Table.useHashMD5(topicname);
 			
 			//創造主題
 			
@@ -51,7 +52,7 @@ public class ServerResource extends CoapResource
 			else
 			{
 				
-				st.executeUpdate("INSERT INTO TopicTable VALUES (\'"+topicname+"\');");
+				st.executeUpdate("INSERT INTO TopicTable VALUES (\'"+topicname+"\',\'"+topicHashMD5+"\');");
 				exchange.respond("Created this Topic");
 				
 				//創造主題

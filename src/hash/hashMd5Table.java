@@ -105,6 +105,30 @@ public class hashMd5Table
 		}
 	}
 	
+	public static String useHashMD5(String input)
+	{
+		byte[] bytesToDigest = input.getBytes();
+		
+		try
+		{
+			MessageDigest messageDigest = MessageDigest.getInstance("MD5");
+            messageDigest.update(bytesToDigest);
+            byte[] digest = messageDigest.digest();
+            String result = bytesToHex(digest);
+            
+            return result;
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			System.out.println(e.getMessage());
+			System.out.println(e.getLocalizedMessage());
+			System.out.println(e.toString());
+		}
+		
+		return "Error";
+	}
+	
 	public String useHashMd5(String input)
 	{
 		byte[] bytesToDigest = input.getBytes();
