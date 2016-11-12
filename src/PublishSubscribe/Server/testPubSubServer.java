@@ -15,6 +15,7 @@ import org.eclipse.californium.core.network.EndpointManager;
 import org.eclipse.californium.core.network.config.NetworkConfig;
 
 import PublishSubscribe.Resource.ServerResource;
+import PublishSubscribe.Resource.testObserve;
 
 public class testPubSubServer extends CoapServer
 {
@@ -24,7 +25,8 @@ public class testPubSubServer extends CoapServer
 	 {
 	        
 	        // provide an instance of a Hello-World resource
-		 add(new ServerResource());
+		 //add(new ServerResource());
+		 add(new testObserve());
 	 }
 	
 	public static void main(String[] args) {
