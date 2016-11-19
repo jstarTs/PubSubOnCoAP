@@ -28,6 +28,9 @@ import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -145,7 +148,24 @@ public class testTryFog extends CoapServer {
         	//InputStream is = new StringBufferInputStream(exchange.getRequestText());
         	//is = new ByteArrayInputStream(exchange.getRequestPayload());
         	
-        	list.add(exchange.getRequestPayload());
+        	try 
+        	{
+				Connection conn = FogDB.getConnection();
+				
+				Statement st = conn.createStatement();
+				
+				st.executeUpdate("INSERT INTO StorageSourceRecords VALUES (\'"+exchange.getRequestText()+"\',\'"+exchange.getSourceAddress()+"\');");
+			} 
+        	catch (ClassNotFoundException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} 
+        	catch (SQLException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+        	
+        	//list.add(exchange.getRequestPayload());
         	
         	System.out.println(list.size());
         	if(list.size()==10)
@@ -163,6 +183,10 @@ public class testTryFog extends CoapServer {
             exchange.respond("Good");
         }
         
+        public void recieveData()
+        {
+        	
+        }
         
         public void useFilterTest(List<byte[]> list) throws InterruptedException
         {

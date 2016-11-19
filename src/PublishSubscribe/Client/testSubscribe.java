@@ -57,6 +57,7 @@ public static void main(String args[]) throws FileNotFoundException {
 			//CoapResponse response = client.get();
 			//CoapResponse response = client.delete();
 			
+			/*
 			CoapClient client = new CoapClient(uri+"/test");
 			CoapResponse response = client.get();
 			client = new CoapClient(uri+"/test1");
@@ -67,7 +68,10 @@ public static void main(String args[]) throws FileNotFoundException {
 			response = client.get();
 			client = new CoapClient(uri+"/test4");
 			response = client.get();
+			*/
 			
+			CoapClient client = new CoapClient(uri);
+			CoapResponse response = client.put("testTopic1", 0);
 			
 			if (response!=null) {
 				

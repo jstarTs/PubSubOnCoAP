@@ -59,6 +59,11 @@ public class XMLDogTaskReducer implements Runnable {
 		return AnswerValueArray;
 	}
 	
+	public String getAnswerValue(int typeNumber)
+	{
+		return (AnswerValueArray[typeNumber]+"");
+	}
+	
 	public void run() 
 	{
 		List<AtomicBoolean> checkList = new ArrayList<AtomicBoolean>();
@@ -90,6 +95,7 @@ public class XMLDogTaskReducer implements Runnable {
 							if(doneTasks == 1) 
 							{
 								//answerValue = new BigInteger(result.get().get(3));
+								//各type的data record在AnswerValueArray初始化
 								for(int i = 0 ; i < typeNum ; i++)
 								{
 									//System.out.println(result.get().size());
@@ -99,6 +105,7 @@ public class XMLDogTaskReducer implements Runnable {
 							else 
 							{
 								//answerValue = answerValue.multiply(new BigInteger(result.get().get(3))).mod(nsquare);
+								//各type的data record在AnswerValueArray從第二個result開始累加
 								for(int i = 0 ; i < typeNum ; i++)
 								{
 									AnswerValueArray[i] = AnswerValueArray[i].multiply(new BigInteger(result.get().get(3+i*queryNumPerType))).mod(nsquare);
