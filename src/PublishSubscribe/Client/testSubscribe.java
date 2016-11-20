@@ -71,7 +71,16 @@ public static void main(String args[]) throws FileNotFoundException {
 			*/
 			
 			CoapClient client = new CoapClient(uri);
-			CoapResponse response = client.put("testTopic1", 0);
+			
+			Scanner sc = new Scanner(new File("./xmldata/test1.xml"));
+			
+			String xmlD = "";
+			while(sc.hasNextLine())
+			{
+				xmlD += sc.nextLine();
+			}
+			
+			CoapResponse response = client.put(xmlD, 0);
 			
 			if (response!=null) {
 				
