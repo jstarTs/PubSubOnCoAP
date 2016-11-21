@@ -75,6 +75,7 @@ public class testTryFog extends CoapServer {
      */
 	
 	BigInteger[] AnswerValueArray;
+	FilterManagement fm = new FilterManagement();
 	
     public static void main(String[] args) {
         
@@ -85,6 +86,7 @@ public class testTryFog extends CoapServer {
             // add endpoints on all IP addresses
             server.addEndpoints();
             server.start();
+            
 
         } catch (SocketException e) {
             System.err.println("Failed to initialize server: " + e.getMessage());
@@ -148,10 +150,10 @@ public class testTryFog extends CoapServer {
         	//InputStream is = new StringBufferInputStream(exchange.getRequestText());
         	//is = new ByteArrayInputStream(exchange.getRequestPayload());
         	
+        	/*
         	try 
         	{
 				Connection conn = FogDB.getConnection();
-				
 				Statement st = conn.createStatement();
 				
 				st.executeUpdate("INSERT INTO StorageSourceRecords VALUES (\'"+exchange.getRequestText()+"\',\'"+exchange.getSourceAddress()+"\');");
@@ -164,6 +166,29 @@ public class testTryFog extends CoapServer {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
+        	*/
+        	
+        	//丟DB
+        	try
+        	{
+        		Connection con = FogDB.getConnection();
+        		Statement st = con.createStatement();
+        		
+        		String[] payload = exchange.getRequestText().split(",");
+        		String sql = "INSERT INTO StorageSourceRecode VALUES (\'"+payload[1]+"\',\'"+payload[0]+"\');";
+        		
+        		if(fm.timeIsNotNull == false)
+        			fm.setTime(payload[0]);
+        		
+        		st.executeUpdate(sql);
+        		
+        	}
+        	catch(SQLException | ClassNotFoundException ex)
+        	{
+        		ex.printStackTrace();
+    			System.out.println(ex.getMessage());
+    			System.out.println(ex.getLocalizedMessage());
+        	}
         	
         	//原先想說直接丟到thread處理，目前先改直接丟DB
         	//list.add(exchange.getRequestPayload());
@@ -181,28 +206,6 @@ public class testTryFog extends CoapServer {
 				}
         	}
         	*/
-        	
-        	
-        	//丟DB
-        	try
-        	{
-        		Connection con = FogDB.getConnection();
-        		Statement st = con.createStatement();
-        		
-        		String[] payload = exchange.getRequestText().split(",");
-        		String sql = "INSERT INTO StorageSourceRecode VALUES (\'"+payload[1]+"\',\'"+payload[0]+"\');";
-        		
-        		st.executeUpdate(sql);
-        		
-        	}
-        	catch(SQLException | ClassNotFoundException ex)
-        	{
-        		ex.printStackTrace();
-    			System.out.println(ex.getMessage());
-    			System.out.println(ex.getLocalizedMessage());
-        	}
-        	
-        	
         	
         	
         	

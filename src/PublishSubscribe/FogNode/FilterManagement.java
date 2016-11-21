@@ -3,6 +3,9 @@ package PublishSubscribe.FogNode;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.math.BigInteger;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -21,12 +24,37 @@ import XMLfilter.callXMLDogFilter;
 public class FilterManagement 
 {
 	String time = null;
-	boolean timeIsNull = false ;
+	boolean timeIsNotNull = false ;
 	
-	public void setTime()
+	public void setTime(String initialTime)
 	{
 		if(time == null)
-			time = "";
+		{
+//			try
+//			{
+//				Connection con = FogDB.getConnection();
+//				Statement st = con.createStatement();
+//				
+//				String sql = "SELECT FROM StorageSourceRecode WHERE ";
+//				
+//			}
+//			catch(SQLException ex)
+//			{
+//				ex.printStackTrace();
+//    			System.out.println(ex.getMessage());
+//    			System.out.println(ex.getLocalizedMessage());
+//			}
+//			catch(ClassNotFoundException ex)
+//			{
+//				ex.printStackTrace();
+//    			System.out.println(ex.getMessage());
+//    			System.out.println(ex.getLocalizedMessage());
+//			}
+			
+			time = initialTime;
+			timeIsNotNull = true;
+		}
+		
 	}
 	
 	
