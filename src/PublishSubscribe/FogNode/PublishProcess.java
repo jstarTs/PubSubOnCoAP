@@ -1,6 +1,6 @@
 package PublishSubscribe.FogNode;
 
-public class PublishToSub 
+public class PublishProcess 
 {
 	
 	public void Publish()

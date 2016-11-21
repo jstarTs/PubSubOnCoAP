@@ -165,9 +165,10 @@ public class testTryFog extends CoapServer {
 				e1.printStackTrace();
 			}
         	
+        	//原先想說直接丟到thread處理，目前先改直接丟DB
         	//list.add(exchange.getRequestPayload());
-        	
-        	System.out.println(list.size());
+        	//System.out.println(list.size());
+        	/*
         	if(list.size()==10)
         	{
         		try 
@@ -179,6 +180,31 @@ public class testTryFog extends CoapServer {
 					e.printStackTrace();
 				}
         	}
+        	*/
+        	
+        	
+        	//丟DB
+        	try
+        	{
+        		Connection con = FogDB.getConnection();
+        		Statement st = con.createStatement();
+        		
+        		String[] payload = exchange.getRequestText().split(",");
+        		String sql = "INSERT INTO StorageSourceRecode VALUES (\'"+payload[1]+"\',\'"+payload[0]+"\');";
+        		
+        		st.executeUpdate(sql);
+        		
+        	}
+        	catch(SQLException | ClassNotFoundException ex)
+        	{
+        		ex.printStackTrace();
+    			System.out.println(ex.getMessage());
+    			System.out.println(ex.getLocalizedMessage());
+        	}
+        	
+        	
+        	
+        	
         	
             exchange.respond("Good");
         }
