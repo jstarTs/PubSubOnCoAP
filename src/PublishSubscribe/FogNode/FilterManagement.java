@@ -4,9 +4,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.math.BigInteger;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
@@ -25,6 +27,15 @@ public class FilterManagement
 {
 	String time = null;
 	boolean timeIsNotNull = false ;
+	int sensorTotal = 0 ;
+	List<String> topicHashList = new ArrayList<String>();
+	
+	
+	public void setSensorNum(int number)
+	{
+		sensorTotal = number;
+		
+	}
 	
 	public void setTime(String initialTime)
 	{
@@ -57,6 +68,57 @@ public class FilterManagement
 		
 	}
 	
+	
+	public void selectData()
+	{
+		try
+		{
+			Connection con = FogDB.getConnection();
+			Statement st = con.createStatement();
+			String count = "SELECT Count(DataRecord) AS total FROM StorageSourceRecode WHERE Time = \'"+time+"'/;" ;
+			String query = "SELECT DataRecord FROM StorageSourceRecode WHERE Time = \'"+time+"'/;" ;
+			ResultSet rs ; 
+			
+			rs = st.executeQuery(count);
+			rs.next();
+			if(rs.getInt("total")!=sensorTotal)
+				selectData();
+			
+			String detection;
+			String[] detectionArray;
+			rs = st.executeQuery(query);
+			while(rs.next())
+			{
+				detection = rs.getString("DataRecord");
+				detectionArray = detection.split("<a");
+				for(int i = 1 ; i < detectionArray.length ; i++)
+				{
+					for(String topic : topicHashList)
+					{
+						if(detectionArray[i].substring(0, 32).equalsIgnoreCase(topic.substring(1)))
+						{
+							
+						}
+					}
+						
+				}
+			}
+			
+		}
+		catch(SQLException ex)
+		{
+			ex.printStackTrace();
+			System.out.println(ex.getMessage());
+			System.out.println(ex.getLocalizedMessage());
+		}
+		catch(ClassNotFoundException ex)
+		{
+			ex.printStackTrace();
+			System.out.println(ex.getMessage());
+			System.out.println(ex.getLocalizedMessage());
+		}
+		
+	}
 	
 	//Pallier
 	BigInteger[] AnswerValueArray;

@@ -87,6 +87,10 @@ public class testTryFog extends CoapServer {
             server.addEndpoints();
             server.start();
             
+            while(true)
+            {
+            	
+            }
 
         } catch (SocketException e) {
             System.err.println("Failed to initialize server: " + e.getMessage());
@@ -175,7 +179,8 @@ public class testTryFog extends CoapServer {
         		Statement st = con.createStatement();
         		
         		String[] payload = exchange.getRequestText().split(",");
-        		String sql = "INSERT INTO StorageSourceRecode VALUES (\'"+payload[1]+"\',\'"+payload[0]+"\');";
+        		//payload[1] 內容  ， payload[0] time , exchange.getSourceAddress()
+        		String sql = "INSERT INTO StorageSourceRecode VALUES (\'"+payload[1]+"\',\'"+payload[0]+"\',\'"+exchange.getSourceAddress()+"\');";
         		
         		if(fm.timeIsNotNull == false)
         			fm.setTime(payload[0]);
