@@ -69,7 +69,7 @@ public class FilterManagement
 	}
 	
 	
-	public void selectData()
+	public void selectData() throws InterruptedException
 	{
 		try
 		{
@@ -84,8 +84,10 @@ public class FilterManagement
 			if(rs.getInt("total")!=sensorTotal)
 				selectData();
 			
+			List<byte[]> list = new ArrayList<byte[]>();
 			String detection;
 			String[] detectionArray;
+			boolean checkTopic = false;
 			rs = st.executeQuery(query);
 			while(rs.next())
 			{
@@ -97,13 +99,19 @@ public class FilterManagement
 					{
 						if(detectionArray[i].substring(0, 32).equalsIgnoreCase(topic.substring(1)))
 						{
-							
+							checkTopic = true;//以String match 判斷是否含有受訂閱的主題
 						}
+						if(checkTopic == false)
+							break;
 					}
-						
+					if(checkTopic == false)
+						break;	
 				}
+				checkTopic = false;
+				list.add(detection.getBytes());
 			}
 			
+			useFilterTest(list);
 		}
 		catch(SQLException ex)
 		{
