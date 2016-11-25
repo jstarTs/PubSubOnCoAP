@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -69,7 +70,7 @@ public class FilterManagement
 	}
 	
 	
-	public void selectData() throws InterruptedException
+	public void selectData() throws InterruptedException, ExecutionException
 	{
 		try
 		{
@@ -131,14 +132,14 @@ public class FilterManagement
 	//Pallier
 	BigInteger[] AnswerValueArray;
 	
-	public void useFilterTest(List<byte[]> list) throws InterruptedException
+	public void useFilterTest(List<byte[]> list) throws InterruptedException, ExecutionException
     {
     	int threadNum = 10;
 		int meterNum = list.size();
 		//int runtime = Integer.parseInt(args[2]);
 		//int totalDocNum = meterNum*runtime;
 		
-		int typeNum = 1;//指的是幾個term
+		int typeNum = topicHashList.size();//指的是幾個term
 		
 		meterStream[] ms = new meterStream[meterNum]; 			
 		
@@ -157,7 +158,8 @@ public class FilterManagement
 		//Collections.addAll(xpathList, xpathArray);
 		try 
 		{
-			Scanner sc = new Scanner(new File("./XpathList"));
+			//Scanner sc = new Scanner(new File("./XpathList"));
+			Scanner sc = new Scanner(new File("testData/testXpathList"));
 			while(sc.hasNextLine())
 			{
 				xpathList.add(sc.nextLine().trim());
@@ -213,11 +215,19 @@ public class FilterManagement
 				reducer.queryNumPerType = xpathList.size()/typeNum;
 				reducer.SetID(taskID);
 				reducer.resultList = resultList;					
-				reducerService.execute(reducer);
+				//reducerService.execute(reducer);
+				Future<BigInteger[]> reducerResult = reducerService.submit(reducer);
 				
-				AnswerValueArray = reducer.getAnswerValueArray();
+				AnswerValueArray = reducerResult.get();
+				
+				//System.out.println(AnswerValueArray[1]);
 			}
 			// resultList.add(result);
+			
+//			for(BigInteger bi : AnswerValueArray)
+//			{
+//				System.out.println(bi.toString());
+//			}
 			
 		}
 		executorService.shutdown(); 
@@ -230,5 +240,46 @@ public class FilterManagement
 		
 		System.gc();
     }
+	
+	public static void main(String[] args) throws FileNotFoundException, InterruptedException, ExecutionException
+	{
+		Scanner sc ;
+		
+		String[] xmlfile = {"testPubSub1.xml" , "testPubSub2.xml" , "testPubSub3.xml" ,"testPubSubAll.xml"};
+		String temp = "";
+		
+		List<byte[]> fileList = new ArrayList<byte[]>();
+		
+		FilterManagement fm = new FilterManagement();
+		
+		fm.topicHashList.add("a85EF20040AB4A17A1908D5575C2A1F0D");
+		fm.topicHashList.add("aAFF6300E3C9BAC889763AE1A06901A7D");
+		
+		/*
+		for(String filename : xmlfile)
+		{
+			sc = new Scanner(new File("testData/"+filename));
+			
+			while(sc.hasNextLine())
+			{
+				temp += sc.nextLine();
+			}
+			fileList.add(temp.getBytes());
+			
+			temp = "";
+		}
+		*/
+		
+		sc = new Scanner(new File("testData/"+"testPubSubAll.xml"));
+		
+		while(sc.hasNextLine())
+		{
+			temp += sc.nextLine();
+		}
+		fileList.add(temp.getBytes());
+		
+		fm.useFilterTest(fileList);
+		
+	}
     
 }

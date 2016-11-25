@@ -29,13 +29,16 @@ public class testSink
 	{
 		// [0]Thread number  [1]Meter number  [2]Total documents to Run   
 		
-		int threadNum = Integer.parseInt(args[0]);
-		int totalDocNum = Integer.parseInt(args[2]);
+//		int threadNum = Integer.parseInt(args[0]);
+//		int totalDocNum = Integer.parseInt(args[2]);
 
-		int meterNum = 100;
-		if(Integer.parseInt(args[1]) > 0) {
-			meterNum = Integer.parseInt(args[1]);
-		}
+		int meterNum = 10;
+//		if(Integer.parseInt(args[1]) > 0) {
+//			meterNum = Integer.parseInt(args[1]);
+//		}
+		
+		int threadNum = 5;
+		int totalDocNum = 10;
 		
 		System.gc();
 		

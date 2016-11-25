@@ -156,9 +156,19 @@ public class callXMLDogFilter implements Callable<List<String>>
 			for(Expression xpath: task.xpathList) 
 			{
 				List<NodeItem> list = (List<NodeItem>) results.getResult(xpath);
-				value.add(list.get(0).value);
+				//System.out.println(list.isEmpty());
+				if(list.isEmpty())
+				{
+					value.add("0");
+					//System.out.println(0);
+				}
+				else
+				{
+					//System.out.println(list.get(0).value);
+					value.add(list.get(0).value);
+				}
 			}
-			//System.out.println(value.size());
+			System.out.println(value.size());
 			/*
 			nodeItemID = (List<NodeItem>)results.getResult(xpath1);
 			nodeItemValue = (List<NodeItem>)results.getResult(xpath2);

@@ -68,7 +68,7 @@ public class testSinkUsingXMLdog
 					String taskId = (i/meterNum)+"";
 					XMLDogTaskReducer reducer = new XMLDogTaskReducer(taskId);
 					reducer.resultList = resultList;					
-					reducerService.execute(reducer);
+					//reducerService.execute(reducer); //因為我目前改用Call 所以影響到Runnable 的run
 				}
 			} 
 			catch (IOException e) 
