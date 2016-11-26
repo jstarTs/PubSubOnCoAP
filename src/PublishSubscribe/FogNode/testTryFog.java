@@ -150,7 +150,7 @@ public class testTryFog extends CoapServer {
         public void handlePUT(CoapExchange exchange) {
             
             // respond to the request
-        	System.out.println(exchange.getRequestText());
+        	//System.out.println(exchange.getRequestText());
         	//InputStream is = new StringBufferInputStream(exchange.getRequestText());
         	//is = new ByteArrayInputStream(exchange.getRequestPayload());
         	
@@ -180,11 +180,14 @@ public class testTryFog extends CoapServer {
         		
         		String[] payload = exchange.getRequestText().split(",");
         		//payload[1] 內容  ， payload[0] time , exchange.getSourceAddress()
-        		String sql = "INSERT INTO StorageSourceRecode VALUES (\'"+payload[1]+"\',\'"+payload[0]+"\',\'"+exchange.getSourceAddress()+"\');";
+        		System.out.println(System.currentTimeMillis());
+        		String sql = "INSERT INTO StorageSourceRecords VALUES (\'"+payload[1]+"\',\'"+payload[0]+"\',\'"+exchange.getSourceAddress()+"\',"+System.currentTimeMillis()+");";
         		
+        		/*
         		if(fm.timeIsNotNull == false)
         			fm.setTime(payload[0]);
-        		
+        		*/
+        		System.out.println("123");
         		st.executeUpdate(sql);
         		
         	}

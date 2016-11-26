@@ -56,7 +56,7 @@ public class testCient {
 				s+=sc.nextLine();
 			}
 			
-			CoapResponse response = client.get();
+			CoapResponse response = client.put(s,0);
 			
 			
 			if (response!=null) {

@@ -102,14 +102,16 @@ public class FilterManagement
 						{
 							checkTopic = true;//以String match 判斷是否含有受訂閱的主題
 						}
-						if(checkTopic == false)
+						if(checkTopic == true)
 							break;
 					}
-					if(checkTopic == false)
+					if(checkTopic == true)
 						break;	
 				}
+				if(checkTopic == true)
+					list.add(detection.getBytes());
 				checkTopic = false;
-				list.add(detection.getBytes());
+				
 			}
 			
 			useFilterTest(list);

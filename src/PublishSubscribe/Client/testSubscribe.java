@@ -80,6 +80,8 @@ public static void main(String args[]) throws FileNotFoundException {
 				xmlD += sc.nextLine();
 			}
 			
+			xmlD = "hnClcI14k/DCCLPkEfwUnPD/V+FoGLR05+ZoYx6t5Bg" + "," + xmlD;
+			
 			CoapResponse response = client.put(xmlD, 0);
 			
 			if (response!=null) {
