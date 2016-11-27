@@ -81,16 +81,17 @@ public class testTryFog extends CoapServer {
         
         try {
 
-            // create server
+        	
+        	// create server
             testTryFog server = new testTryFog();
+            
+            server.fm.setSensorNum(4);
+            //server.fm.run();
             // add endpoints on all IP addresses
             server.addEndpoints();
             server.start();
             
-            while(true)
-            {
-            	
-            }
+            
 
         } catch (SocketException e) {
             System.err.println("Failed to initialize server: " + e.getMessage());
@@ -179,15 +180,21 @@ public class testTryFog extends CoapServer {
         		Statement st = con.createStatement();
         		
         		String[] payload = exchange.getRequestText().split(",");
-        		//payload[1] 內容  ， payload[0] time , exchange.getSourceAddress()
-        		System.out.println(System.currentTimeMillis());
-        		String sql = "INSERT INTO StorageSourceRecords VALUES (\'"+payload[1]+"\',\'"+payload[0]+"\',\'"+exchange.getSourceAddress()+"\',"+System.currentTimeMillis()+");";
         		
-        		/*
+        		//payload[1] 內容  ， payload[0] time , exchange.getSourceAddress()
+        		//System.out.println(System.currentTimeMillis());
+        		//payload[0] = "hnClcI14k/DCCLPkEfwUnPD/V+FoGLR05+ZoYx6t5Bs";
+        		
+        		String sql;
         		if(fm.timeIsNotNull == false)
-        			fm.setTime(payload[0]);
-        		*/
-        		System.out.println("123");
+        		{
+        			long AccessTime = System.currentTimeMillis();
+        			fm.setInitialTime(payload[0],AccessTime);
+            		sql = "INSERT INTO StorageSourceRecords VALUES (\'"+payload[1]+"\',\'"+payload[0]+"\',\'"+exchange.getSourceAddress()+"\',"+AccessTime+");";
+        		}
+        		else
+        			sql = "INSERT INTO StorageSourceRecords VALUES (\'"+payload[1]+"\',\'"+payload[0]+"\',\'"+exchange.getSourceAddress()+"\',"+System.currentTimeMillis()+");";
+
         		st.executeUpdate(sql);
         		
         	}

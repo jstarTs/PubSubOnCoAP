@@ -24,13 +24,19 @@ import Sink.XMLDogTaskReducer;
 import Sink.meterStream;
 import XMLfilter.callXMLDogFilter;
 
-public class FilterManagement 
+public class FilterManagement implements Runnable
 {
-	String time = null;
+	String time = null ;
+	int PreviousAccessTime ;
 	boolean timeIsNotNull = false ;
 	int sensorTotal = 0 ;
+	long AccessTime ;
 	List<String> topicHashList = new ArrayList<String>();
 	
+	public FilterManagement() 
+	{
+		
+	}
 	
 	public void setSensorNum(int number)
 	{
@@ -38,83 +44,46 @@ public class FilterManagement
 		
 	}
 	
-	public void setTime(String initialTime)
+	public String getTime()
 	{
-		if(time == null)
-		{
-//			try
-//			{
-//				Connection con = FogDB.getConnection();
-//				Statement st = con.createStatement();
-//				
-//				String sql = "SELECT FROM StorageSourceRecode WHERE ";
-//				
-//			}
-//			catch(SQLException ex)
-//			{
-//				ex.printStackTrace();
-//    			System.out.println(ex.getMessage());
-//    			System.out.println(ex.getLocalizedMessage());
-//			}
-//			catch(ClassNotFoundException ex)
-//			{
-//				ex.printStackTrace();
-//    			System.out.println(ex.getMessage());
-//    			System.out.println(ex.getLocalizedMessage());
-//			}
-			
-			time = initialTime;
-			timeIsNotNull = true;
-		}
-		
+		return time;
 	}
 	
+	public void setInitialTime(String initialTime , long AccessTime)
+	{
+		time = initialTime;
+		timeIsNotNull = true;
+	}
 	
-	public void selectData() throws InterruptedException, ExecutionException
+	public void setTime()
 	{
 		try
 		{
 			Connection con = FogDB.getConnection();
 			Statement st = con.createStatement();
-			String count = "SELECT Count(DataRecord) AS total FROM StorageSourceRecode WHERE Time = \'"+time+"'/;" ;
-			String query = "SELECT DataRecord FROM StorageSourceRecode WHERE Time = \'"+time+"'/;" ;
-			ResultSet rs ; 
+			
+			String sql = "SELECT * FROM StorageSourceRecords WHERE AccessTime = " + " (Select min(AccessTime) from StorageSourceRecords where (AccessTime > "+AccessTime+") AND ( Time != \'"+time+"\' ) );";
+			String count = "SELECT count(Time) as Total FROM StorageSourceRecords WHERE AccessTime = " + " (Select min(AccessTime) from StorageSourceRecords where (AccessTime > "+AccessTime+") AND ( Time != \'"+time+"\' ) );";
+			
+			ResultSet rs ;
 			
 			rs = st.executeQuery(count);
 			rs.next();
-			if(rs.getInt("total")!=sensorTotal)
-				selectData();
-			
-			List<byte[]> list = new ArrayList<byte[]>();
-			String detection;
-			String[] detectionArray;
-			boolean checkTopic = false;
-			rs = st.executeQuery(query);
-			while(rs.next())
+			if(rs.getInt("Total")==0)
 			{
-				detection = rs.getString("DataRecord");
-				detectionArray = detection.split("<a");
-				for(int i = 1 ; i < detectionArray.length ; i++)
-				{
-					for(String topic : topicHashList)
-					{
-						if(detectionArray[i].substring(0, 32).equalsIgnoreCase(topic.substring(1)))
-						{
-							checkTopic = true;//以String match 判斷是否含有受訂閱的主題
-						}
-						if(checkTopic == true)
-							break;
-					}
-					if(checkTopic == true)
-						break;	
-				}
-				if(checkTopic == true)
-					list.add(detection.getBytes());
-				checkTopic = false;
+				con.close();
+				timeIsNotNull = false;
+			}
+			else
+			{
+				rs = st.executeQuery(sql);
+				rs.next();
+				time = rs.getString("Time");
+				AccessTime = rs.getLong("AccessTime");
 				
+				con.close();
 			}
 			
-			useFilterTest(list);
 		}
 		catch(SQLException ex)
 		{
@@ -129,6 +98,90 @@ public class FilterManagement
 			System.out.println(ex.getLocalizedMessage());
 		}
 		
+	}
+	
+	//test用 , 非正式
+	public void setTopic() throws FileNotFoundException
+	{
+		topicHashList.clear();
+		
+		Scanner sc = new Scanner(new File("testData/testTopic"));
+		
+		while(sc.hasNextLine())
+		{
+			topicHashList.add(sc.nextLine());
+		}
+	}
+	
+	public void selectData() throws InterruptedException, ExecutionException
+	{
+		if(time == null)
+			selectData();
+		else
+		{
+			try
+			{
+				Connection con = FogDB.getConnection();
+				Statement st = con.createStatement();
+				String count = "SELECT Count(DataRecord) AS total FROM StorageSourceRecords WHERE Time = \'"+time+"\';" ;
+				String query = "SELECT DataRecord FROM StorageSourceRecords WHERE Time = \'"+time+"\';" ;
+				ResultSet rs ; 
+				
+				rs = st.executeQuery(count);
+				rs.next();
+				if(rs.getInt("total")!=sensorTotal)
+					wait(10);
+				
+				List<byte[]> list = new ArrayList<byte[]>();
+				String detection;
+				String[] detectionArray;
+				boolean checkTopic = false;
+				rs = st.executeQuery(query);
+				while(rs.next())
+				{
+					detection = rs.getString("DataRecord");
+					detectionArray = detection.split("<a");
+					for(int i = 1 ; i < detectionArray.length ; i++)
+					{
+						for(String topic : topicHashList)
+						{
+							if(detectionArray[i].substring(0, 32).equalsIgnoreCase(topic.substring(1)))
+							{
+								checkTopic = true;//以String match 判斷是否含有受訂閱的主題
+							}
+							if(checkTopic == true)
+								break;
+						}
+						if(checkTopic == true)
+							break;	
+					}
+					if(checkTopic == true)
+						list.add(detection.getBytes());
+					checkTopic = false;
+					
+				}
+				con.close();
+				useFilterTest(list);
+				do
+				{
+					setTime();
+					//System.out.println("123");
+				}while(timeIsNotNull == false);
+			}
+			catch(SQLException ex)
+			{
+				ex.printStackTrace();
+				System.out.println(ex.getMessage());
+				System.out.println(ex.getLocalizedMessage());
+			}
+			catch(ClassNotFoundException ex)
+			{
+				ex.printStackTrace();
+				System.out.println(ex.getMessage());
+				System.out.println(ex.getLocalizedMessage());
+			}
+		}
+
 	}
 	
 	//Pallier
@@ -241,7 +294,43 @@ public class FilterManagement
 		System.out.println(("MeterNum: "+meterNum+" , ThreadNum: "+threadNum+" , "+"duration:" + (endTime - starttime)));
 		
 		System.gc();
+		//selectData();
     }
+	
+	@Override
+	public void run() 
+	{
+		// TODO Auto-generated method stub
+		while(true)
+		{
+			if(timeIsNotNull == false && time == null)
+			{
+				
+			}
+			else if(timeIsNotNull == false)
+			{
+				
+			}
+			else
+			{
+				try 
+				{
+					selectData();
+				} 
+				catch (InterruptedException e) 
+				{
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} 
+				catch (ExecutionException e) 
+				{
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+    
 	
 	public static void main(String[] args) throws FileNotFoundException, InterruptedException, ExecutionException
 	{
@@ -272,6 +361,7 @@ public class FilterManagement
 		}
 		*/
 		
+		/*
 		sc = new Scanner(new File("testData/"+"testPubSubAll.xml"));
 		
 		while(sc.hasNextLine())
@@ -281,7 +371,37 @@ public class FilterManagement
 		fileList.add(temp.getBytes());
 		
 		fm.useFilterTest(fileList);
+		*/
+		
+		/*
+		fm.AccessTime=0;
+		fm.setTime();
+		System.out.println(fm.time);
+		System.out.println(fm.AccessTime);
+		fm.setTime();
+		System.out.println(fm.time);
+		System.out.println(fm.AccessTime);
+		fm.setTime();
+		System.out.println(fm.time);
+		System.out.println(fm.AccessTime);
+		fm.setTime();
+		System.out.println(fm.time);
+		System.out.println(fm.AccessTime);
+		fm.setTime();
+		*/
+		/*
+		fm.timeIsNotNull = true;
+		fm.setSensorNum(4);
+		fm.setTopic();
+		fm.AccessTime= new Long("1480232584476") ;
+		fm.time = "hnClcI14k/DCCLPkEfwUnPD/V+FoGLR05+ZoYx6t5Bg";
+		for(int i=0 ; i<4 ; i++)
+		{
+			fm.selectData();
+		}
+		*/
 		
 	}
-    
+
+	
 }

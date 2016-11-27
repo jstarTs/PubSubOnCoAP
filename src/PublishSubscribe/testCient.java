@@ -19,6 +19,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 import org.eclipse.californium.core.CoapClient;
@@ -48,30 +50,53 @@ public class testCient {
 			
 			CoapClient client = new CoapClient(uri);
 			
-			Scanner sc = new Scanner(new File("./xmldata/test20TE2.xml"));
+			String[] xmlfile = {"testPubSub1.xml" , "testPubSub2.xml" , "testPubSub3.xml" ,"testPubSubAll.xml"};
+			String temp = "";
+			Scanner sc ;
+			List<String> fileList = new ArrayList<String>();
+			String[] timeArray = {"hnClcI14k/DCCLPkEfwUnPD/V+FoGLR05+ZoYx6t5Bg","hnClcI14k/DCCLPkEfwUnPD/V+FoGLR05+ZoYx6t5Ba","hnClcI14k/DCCLPkEfwUnPD/V+FoGLR05+ZoYx6t5Bf","hnClcI14k/DCCLPkEfwUnPD/V+FoGLR05+ZoYx6t5Be"};
 			
-			String s ="";
-			while(sc.hasNextLine())
+			for(String filename : xmlfile)
 			{
-				s+=sc.nextLine();
+				sc = new Scanner(new File("testData/"+filename));
+				
+				while(sc.hasNextLine())
+				{
+					temp += sc.nextLine();
+				}
+				fileList.add(temp);
+				
+				temp = "";
 			}
 			
-			CoapResponse response = client.put(s,0);
+			//CoapResponse response = client.get();
+			CoapResponse response ;
 			
-			
-			if (response!=null) {
-				
-				System.out.println(response.getCode());
-				System.out.println(response.getOptions());
-				System.out.println(response.getResponseText());
-				
-				System.out.println("\nADVANCED\n");
-				// access advanced API with access to more details through .advanced()
-				System.out.println(Utils.prettyPrint(response));
-				
-			} else {
-				System.out.println("No response received.");
+			for(String time :  timeArray)
+			{
+				for(String scXML :  fileList)
+				{
+					response = client.put((time+","+scXML), 0);
+					if (response!=null) {
+						
+						System.out.println(response.getCode());
+						System.out.println(response.getOptions());
+						System.out.println(response.getResponseText());
+						
+						System.out.println("\nADVANCED\n");
+						// access advanced API with access to more details through .advanced()
+						System.out.println(Utils.prettyPrint(response));
+						
+					} else {
+						System.out.println("No response received.");
+					}
+					
+				}
 			}
+			
+			
+			
+			
 			
 		} else {
 			// display help

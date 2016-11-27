@@ -168,7 +168,7 @@ public class callXMLDogFilter implements Callable<List<String>>
 					value.add(list.get(0).value);
 				}
 			}
-			System.out.println(value.size());
+			//System.out.println(value.size());
 			/*
 			nodeItemID = (List<NodeItem>)results.getResult(xpath1);
 			nodeItemValue = (List<NodeItem>)results.getResult(xpath2);
