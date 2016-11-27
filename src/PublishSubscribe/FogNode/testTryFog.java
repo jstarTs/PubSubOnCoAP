@@ -86,11 +86,11 @@ public class testTryFog extends CoapServer {
             testTryFog server = new testTryFog();
             
             server.fm.setSensorNum(4);
-            //server.fm.run();
+            
             // add endpoints on all IP addresses
             server.addEndpoints();
             server.start();
-            
+            server.fm.run();
             
 
         } catch (SocketException e) {
