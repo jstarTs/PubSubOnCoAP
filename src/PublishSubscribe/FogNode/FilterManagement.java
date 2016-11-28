@@ -73,6 +73,8 @@ public class FilterManagement implements Runnable
 			{
 				con.close();
 				timeIsNotNull = false;
+				time = null;
+				//System.out.println("6666");
 			}
 			else
 			{
@@ -82,6 +84,7 @@ public class FilterManagement implements Runnable
 				AccessTime = rs.getLong("AccessTime");
 				
 				con.close();
+				//System.out.println("7777");
 			}
 			
 		}
@@ -113,73 +116,79 @@ public class FilterManagement implements Runnable
 		}
 	}
 	
-	public void selectData() throws InterruptedException, ExecutionException
+	public void selectData() throws InterruptedException, ExecutionException, FileNotFoundException
 	{
-		if(time == null)
-			selectData();
-		else
+		while(time==null)
 		{
-			try
+			System.out.println("000");
+			
+		}
+		
+		try
+		{
+			Connection con = FogDB.getConnection();
+			Statement st = con.createStatement();
+			String count = "SELECT Count(DataRecord) AS total FROM StorageSourceRecords WHERE Time = \'"+time+"\';" ;
+			String query = "SELECT DataRecord FROM StorageSourceRecords WHERE Time = \'"+time+"\';" ;
+			ResultSet rs ; 
+			
+			rs = st.executeQuery(count);
+			rs.next();
+			while(rs.getInt("total")!=sensorTotal)
 			{
-				Connection con = FogDB.getConnection();
-				Statement st = con.createStatement();
-				String count = "SELECT Count(DataRecord) AS total FROM StorageSourceRecords WHERE Time = \'"+time+"\';" ;
-				String query = "SELECT DataRecord FROM StorageSourceRecords WHERE Time = \'"+time+"\';" ;
-				ResultSet rs ; 
-				
 				rs = st.executeQuery(count);
 				rs.next();
-				if(rs.getInt("total")!=sensorTotal)
-					wait(10);
-				
-				List<byte[]> list = new ArrayList<byte[]>();
-				String detection;
-				String[] detectionArray;
-				boolean checkTopic = false;
-				rs = st.executeQuery(query);
-				while(rs.next())
+				System.out.println(rs.getInt("total"));
+			}
+			
+			List<byte[]> list = new ArrayList<byte[]>();
+			String detection;
+			String[] detectionArray;
+			setTopic();
+			boolean checkTopic = false;
+			rs = st.executeQuery(query);
+			while(rs.next())
+			{
+				detection = rs.getString("DataRecord");
+				detectionArray = detection.split("<a");
+				for(int i = 1 ; i < detectionArray.length ; i++)
 				{
-					detection = rs.getString("DataRecord");
-					detectionArray = detection.split("<a");
-					for(int i = 1 ; i < detectionArray.length ; i++)
+					for(String topic : topicHashList)
 					{
-						for(String topic : topicHashList)
+						if(detectionArray[i].substring(0, 32).equalsIgnoreCase(topic.substring(1)))
 						{
-							if(detectionArray[i].substring(0, 32).equalsIgnoreCase(topic.substring(1)))
-							{
-								checkTopic = true;//以String match 判斷是否含有受訂閱的主題
-							}
-							if(checkTopic == true)
-								break;
+							checkTopic = true;//以String match 判斷是否含有受訂閱的主題
 						}
 						if(checkTopic == true)
-							break;	
+							break;
 					}
 					if(checkTopic == true)
-						list.add(detection.getBytes());
-					checkTopic = false;
-					
+						break;	
 				}
-				con.close();
-				useFilterTest(list);
-				do
-				{
-					setTime();
-					//System.out.println("123");
-				}while(timeIsNotNull == false);
+				if(checkTopic == true)
+					list.add(detection.getBytes());
+				checkTopic = false;
+				
 			}
-			catch(SQLException ex)
+			con.close();
+			useFilterTest(list);
+			do
 			{
-				ex.printStackTrace();
-				System.out.println(ex.getMessage());
-				System.out.println(ex.getLocalizedMessage());
-			}
-			catch(ClassNotFoundException ex)
-			{
-				ex.printStackTrace();
-				System.out.println(ex.getMessage());
-				System.out.println(ex.getLocalizedMessage());
-			}
+				setTime();
+				//System.out.println("555");
+			}while(timeIsNotNull == false);
+		}
+		catch(SQLException ex)
+		{
+			ex.printStackTrace();
+			System.out.println(ex.getMessage());
+			System.out.println(ex.getLocalizedMessage());
+		}
+		catch(ClassNotFoundException ex)
+		{
+			ex.printStackTrace();
+			System.out.println(ex.getMessage());
+			System.out.println(ex.getLocalizedMessage());
 		}
 
 	}
@@ -291,7 +300,8 @@ public class FilterManagement implements Runnable
 		reducerService.awaitTermination(30, TimeUnit.MINUTES);
 				
 		long endTime = System.currentTimeMillis();
-		System.out.println(("MeterNum: "+meterNum+" , ThreadNum: "+threadNum+" , "+"duration:" + (endTime - starttime)));
+		//System.out.println(("MeterNum: "+meterNum+" , ThreadNum: "+threadNum+" , "+"duration:" + (endTime - starttime)));
+		System.out.println(("MeterNum: "+meterNum+" , ThreadNum: "+threadNum+" , "+"endTime:" + endTime ));
 		
 		System.gc();
 		//selectData();
@@ -301,21 +311,44 @@ public class FilterManagement implements Runnable
 	public void run() 
 	{
 		// TODO Auto-generated method stub
+		/*
 		while(true)
 		{
 			if(timeIsNotNull == false && time == null)
 			{
+				break;
+			}
+		}
+		*/
+		System.out.println("000");
+		try {
+			selectData();
+			System.out.println("111");
+		} catch (FileNotFoundException | InterruptedException | ExecutionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+		/*
+		while(true)
+		{
+			if(timeIsNotNull == false && time == null)
+			{
+				//System.out.println("111");
 				
 			}
 			else if(timeIsNotNull == false)
 			{
-				
+				//System.out.println("222");
 			}
 			else
 			{
 				try 
 				{
+					//System.out.println("333");
 					selectData();
+					
 				} 
 				catch (InterruptedException e) 
 				{
@@ -326,9 +359,12 @@ public class FilterManagement implements Runnable
 				{
 					// TODO Auto-generated catch block
 					e.printStackTrace();
+				} catch (FileNotFoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
 			}
-		}
+		}*/
 	}
     
 	

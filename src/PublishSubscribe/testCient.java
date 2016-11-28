@@ -54,7 +54,10 @@ public class testCient {
 			String temp = "";
 			Scanner sc ;
 			List<String> fileList = new ArrayList<String>();
-			String[] timeArray = {"hnClcI14k/DCCLPkEfwUnPD/V+FoGLR05+ZoYx6t5Bg","hnClcI14k/DCCLPkEfwUnPD/V+FoGLR05+ZoYx6t5Ba","hnClcI14k/DCCLPkEfwUnPD/V+FoGLR05+ZoYx6t5Bf","hnClcI14k/DCCLPkEfwUnPD/V+FoGLR05+ZoYx6t5Be"};
+			
+			String[] timeArray = {"hnClcI14k/DCCLPkEfwUnPD/V+FoGLR05+ZoYx6t5Bg","hnClcI14k/DCCLPkEfwUnPD/V+FoGLR05+ZoYx6t5Ba","hnClcI14k/DCCLPkEfwUnPD/V+FoGLR05+ZoYx6t5Bf","hnClcI14k/DCCLPkEfwUnPD/V+FoGLR05+ZoYx6t5Be"};		
+			
+			String timeA = "hnClcI14k/DCCLPkEfwUnPD/V+FoGLR05+ZoYx6t5Bh";
 			
 			for(String filename : xmlfile)
 			{
@@ -72,6 +75,25 @@ public class testCient {
 			//CoapResponse response = client.get();
 			CoapResponse response ;
 			
+			for(int i = 0 ; i < 10 ; i++)
+			{
+				response = client.put((timeArray[0]+","+fileList.get(3)), 0);
+				if (response!=null) {
+					
+					System.out.println(response.getCode());
+					System.out.println(response.getOptions());
+					System.out.println(response.getResponseText());
+					
+					System.out.println("\nADVANCED\n");
+					// access advanced API with access to more details through .advanced()
+					System.out.println(Utils.prettyPrint(response));
+					
+				} else {
+					System.out.println("No response received.");
+				}
+			}
+			
+			/*
 			for(String time :  timeArray)
 			{
 				for(String scXML :  fileList)
@@ -93,10 +115,27 @@ public class testCient {
 					
 				}
 			}
-			
-			
-			
-			
+			*/
+			/*
+			for(String scXML :  fileList)
+			{
+				response = client.put((timeA+","+scXML), 0);
+				if (response!=null) {
+					
+					System.out.println(response.getCode());
+					System.out.println(response.getOptions());
+					System.out.println(response.getResponseText());
+					
+					System.out.println("\nADVANCED\n");
+					// access advanced API with access to more details through .advanced()
+					System.out.println(Utils.prettyPrint(response));
+					
+				} else {
+					System.out.println("No response received.");
+				}
+				
+			}
+			*/
 			
 		} else {
 			// display help

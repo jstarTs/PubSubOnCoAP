@@ -34,6 +34,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -85,12 +86,27 @@ public class testTryFog extends CoapServer {
         	// create server
             testTryFog server = new testTryFog();
             
-            server.fm.setSensorNum(4);
+            //server.fm.setSensorNum(4);
+            server.fm.setSensorNum(Integer.parseInt(args[0]) );
             
             // add endpoints on all IP addresses
             server.addEndpoints();
             server.start();
-            server.fm.run();
+            
+            //server.fm.run();
+            
+            try {
+				server.fm.selectData();
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (ExecutionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
             
 
         } catch (SocketException e) {
