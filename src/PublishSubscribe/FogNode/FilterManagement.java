@@ -118,11 +118,16 @@ public class FilterManagement implements Runnable
 	
 	public void selectData() throws InterruptedException, ExecutionException, FileNotFoundException
 	{
-		while(time==null)
+		while(true)
 		{
-			System.out.println("000");
-			
+			//System.out.println("000");
+			if(time!=null)
+				break;
+			else
+				System.out.println(time);
 		}
+		
+		System.out.println("...");
 		
 		try
 		{
@@ -304,7 +309,12 @@ public class FilterManagement implements Runnable
 		System.out.println(("MeterNum: "+meterNum+" , ThreadNum: "+threadNum+" , "+"endTime:" + endTime ));
 		
 		System.gc();
-		//selectData();
+		try {
+			selectData();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     }
 	
 	@Override
@@ -320,10 +330,10 @@ public class FilterManagement implements Runnable
 			}
 		}
 		*/
-		System.out.println("000");
+		//System.out.println("000");
 		try {
 			selectData();
-			System.out.println("111");
+			//System.out.println("111");
 		} catch (FileNotFoundException | InterruptedException | ExecutionException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

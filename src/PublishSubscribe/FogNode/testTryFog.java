@@ -93,7 +93,7 @@ public class testTryFog extends CoapServer {
             server.addEndpoints();
             server.start();
             
-            //server.fm.run();
+            server.fm.run();
             
             try {
 				server.fm.selectData();
