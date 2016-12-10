@@ -74,7 +74,7 @@ public class testCient {
 			
 			//CoapResponse response = client.get();
 			CoapResponse response ;
-			
+			/*
 			for(int i = 0 ; i < 10 ; i++)
 			{
 				response = client.put((timeArray[0]+","+fileList.get(3)), 0);
@@ -92,13 +92,13 @@ public class testCient {
 					System.out.println("No response received.");
 				}
 			}
+			*/
 			
-			/*
 			for(String time :  timeArray)
 			{
-				for(String scXML :  fileList)
+				for(int i = 0 ; i < 10 ; i++)
 				{
-					response = client.put((time+","+scXML), 0);
+					response = client.put((time+","+fileList.get(3)), 0);
 					if (response!=null) {
 						
 						System.out.println(response.getCode());
@@ -112,10 +112,9 @@ public class testCient {
 					} else {
 						System.out.println("No response received.");
 					}
-					
 				}
 			}
-			*/
+			
 			/*
 			for(String scXML :  fileList)
 			{

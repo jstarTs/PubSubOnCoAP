@@ -26,7 +26,7 @@ import XMLfilter.callXMLDogFilter;
 
 public class FilterManagement implements Runnable
 {
-	String time = null ;
+	String time = null ,PreviousTime = null , NextTime = null;
 	int PreviousAccessTime ;
 	boolean timeIsNotNull = false ;
 	int sensorTotal = 0 ;
@@ -69,6 +69,9 @@ public class FilterManagement implements Runnable
 			
 			rs = st.executeQuery(count);
 			rs.next();
+			
+			if(time != null)
+				PreviousTime = time;
 			if(rs.getInt("Total")==0)
 			{
 				con.close();
@@ -80,8 +83,12 @@ public class FilterManagement implements Runnable
 			{
 				rs = st.executeQuery(sql);
 				rs.next();
-				time = rs.getString("Time");
-				AccessTime = rs.getLong("AccessTime");
+				if(!PreviousTime.equalsIgnoreCase(rs.getString("Time")))
+				{
+					time = rs.getString("Time");
+					AccessTime = rs.getLong("AccessTime");
+				}
+					
 				
 				con.close();
 				//System.out.println("7777");
@@ -116,8 +123,18 @@ public class FilterManagement implements Runnable
 		}
 	}
 	
+	public void processDataSelect() throws FileNotFoundException, InterruptedException, ExecutionException
+	{
+		//System.out.println("000");
+		if(time!=null)
+			selectData();
+//		else
+//			System.out.println(time);
+	}
+	
 	public void selectData() throws InterruptedException, ExecutionException, FileNotFoundException
 	{
+		/*
 		while(true)
 		{
 			//System.out.println("000");
@@ -126,8 +143,8 @@ public class FilterManagement implements Runnable
 			else
 				System.out.println(time);
 		}
-		
-		System.out.println("...");
+		*/
+		//System.out.println("...");
 		
 		try
 		{
@@ -143,7 +160,7 @@ public class FilterManagement implements Runnable
 			{
 				rs = st.executeQuery(count);
 				rs.next();
-				System.out.println(rs.getInt("total"));
+				//System.out.println(rs.getInt("total"));
 			}
 			
 			List<byte[]> list = new ArrayList<byte[]>();
@@ -177,11 +194,14 @@ public class FilterManagement implements Runnable
 			}
 			con.close();
 			useFilterTest(list);
+			/*
 			do
 			{
+				System.out.println("555");
 				setTime();
-				//System.out.println("555");
+				
 			}while(timeIsNotNull == false);
+			*/
 		}
 		catch(SQLException ex)
 		{
@@ -309,12 +329,7 @@ public class FilterManagement implements Runnable
 		System.out.println(("MeterNum: "+meterNum+" , ThreadNum: "+threadNum+" , "+"endTime:" + endTime ));
 		
 		System.gc();
-		try {
-			selectData();
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		
     }
 	
 	@Override
@@ -331,12 +346,20 @@ public class FilterManagement implements Runnable
 		}
 		*/
 		//System.out.println("000");
-		try {
-			selectData();
-			//System.out.println("111");
-		} catch (FileNotFoundException | InterruptedException | ExecutionException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		while(true)
+		{
+			try 
+			{
+				processDataSelect();
+//				System.out.println("+++");
+				setTime();
+//				System.out.println("---");
+//				System.out.println(time);
+				//System.out.println("111");
+			} catch (FileNotFoundException | InterruptedException | ExecutionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		
 		
