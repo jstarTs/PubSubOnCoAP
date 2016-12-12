@@ -72,9 +72,10 @@ public class testCient {
 			
 			//CoapResponse response = client.get();
 			
+			
 			CoapClient client = new CoapClient(uri);
 			CoapResponse response ;
-			for(int i = 0 ; i < 100 ; i++)
+			for(int i = 0 ; i < 500 ; i++)
 			{
 				
 				//response = client.put((timeArray[0]+","+fileList.get(3)), 0);
