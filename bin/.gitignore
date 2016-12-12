@@ -1,10 +1,17 @@
+/Main.class
 /Paillier/
 /PublishSubscribe/
 /Sink/
+/TestXML.class
 /XMLfilter/
 /ahe/
 /hash/
 /meter/
+/test.class
+/testMain$1.class
+/testMain.class
+/testMulti.class
+/testSaxon.class
 /testSinkFirst.class
 /testSinkUsingSaxon.class
 /testSinkUsingXMLdog.class

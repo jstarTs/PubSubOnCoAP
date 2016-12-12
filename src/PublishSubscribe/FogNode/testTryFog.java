@@ -78,25 +78,30 @@ public class testTryFog extends CoapServer {
 	BigInteger[] AnswerValueArray;
 	FilterManagement fm = new FilterManagement();
 	
+	static int listSize;
+	
     public static void main(String[] args) {
         
-        try {
+        listSize = Integer.parseInt(args[0]);
+    	
+    	try {
 
         	
         	// create server
             testTryFog server = new testTryFog();
             
             //server.fm.setSensorNum(4);
-            server.fm.setSensorNum(Integer.parseInt(args[0]) );
+            //server.fm.setSensorNum(Integer.parseInt(args[0]) );
             
             // add endpoints on all IP addresses
             server.addEndpoints();
             server.start();
             
-            server.fm.run();
+            //server.fm.run();//用DB時用
             
+            /*
             try {
-				server.fm.selectData();
+				//server.fm.selectData();
 			} catch (FileNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -107,7 +112,7 @@ public class testTryFog extends CoapServer {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-            
+            */
 
         } catch (SocketException e) {
             System.err.println("Failed to initialize server: " + e.getMessage());
@@ -165,8 +170,9 @@ public class testTryFog extends CoapServer {
         
         @Override
         public void handlePUT(CoapExchange exchange) {
+        	long AccessTime = System.currentTimeMillis();
             
-            // respond to the request
+        	// respond to the request
         	//System.out.println(exchange.getRequestText());
         	//InputStream is = new StringBufferInputStream(exchange.getRequestText());
         	//is = new ByteArrayInputStream(exchange.getRequestPayload());
@@ -190,6 +196,7 @@ public class testTryFog extends CoapServer {
         	*/
         	
         	//丟DB
+        	/*
         	try
         	{
         		Connection con = FogDB.getConnection();
@@ -220,12 +227,15 @@ public class testTryFog extends CoapServer {
     			System.out.println(ex.getMessage());
     			System.out.println(ex.getLocalizedMessage());
         	}
+        	*/
         	
         	//原先想說直接丟到thread處理，目前先改直接丟DB
-        	//list.add(exchange.getRequestPayload());
+        	list.add(exchange.getRequestPayload());
         	//System.out.println(list.size());
-        	/*
-        	if(list.size()==10)
+        	if(list.size() == 1)
+        		System.out.println(AccessTime);
+        	
+        	if(list.size() == listSize)
         	{
         		try 
         		{
@@ -236,7 +246,7 @@ public class testTryFog extends CoapServer {
 					e.printStackTrace();
 				}
         	}
-        	*/
+        	
         	
         	
         	
@@ -250,102 +260,106 @@ public class testTryFog extends CoapServer {
         
         public void useFilterTest(List<byte[]> list) throws InterruptedException
         {
-//        	int threadNum = 10;
-//    		int meterNum = list.size();
-//    		//int runtime = Integer.parseInt(args[2]);
-//    		//int totalDocNum = meterNum*runtime;
-//    		
-//    		int typeNum = 1;//指的是幾個term
-//    		
-//    		meterStream[] ms = new meterStream[meterNum]; 			
-//    		
-//    		for(int i = 0 ; i < meterNum ; i++)
-//    		{
-//    			ms[i] = new meterStream();
-//    			//ms[i].setUrl("http://service2.allenworkspace.net/xml/xmldata/testxml"+(i+1)+".xml");
-//    			//ms[i].setUrl("http://program.allenworkspace.net/xml/xmldata/testxml"+(i+1)+".xml");									
-//    			//ms[i].setUrl("http://program.allenworkspace.net/xml/xmldata/testE1.xml");
-//    			//ms[i].setUrl("http://program.allenworkspace.net/xml/xmldata/test20T1.xml");
-//    			//ms[i].setUrl("http://program.allenworkspace.net/xml/xmldata/test20TE2.xml");
-//    			ms[i].setByteArray(list.get(i));
-//    		}
-//    		
-//    		List<String> xpathList = new ArrayList<String>();
-//    		//Collections.addAll(xpathList, xpathArray);
-//    		try 
-//    		{
-//    			Scanner sc = new Scanner(new File("./XpathList"));
-//    			while(sc.hasNextLine())
-//    			{
-//    				xpathList.add(sc.nextLine().trim());
-//    			}
-//    		}
-//    		catch (FileNotFoundException e) 
-//    		{
-//    			// TODO Auto-generated catch block
-//    			e.printStackTrace();
-//    		}
-//    		
-//    		
-//    		List<XMLDogTask> taskPool = null;
-//
-//    		if(threadNum > 0) {
-//    			taskPool = TaskPool.CreateXMLDogTasks(threadNum, xpathList);
-//
-//    		}
-//    		
-//    		ExecutorService executorService = Executors.newFixedThreadPool(threadNum);
-//    		
-//    		ExecutorService reducerService = Executors.newCachedThreadPool(); 
-//    		//ExecutorService reducerService = Executors.newFixedThreadPool(reducerNum);
-//    		
-//    		List<Future<List<String>>> resultList = null;
-//    		
-//    		long starttime = System.currentTimeMillis();
-//    		
-//    		for(int i = 0 ; i < list.size() ; i++ )
-//    		{
-//    			
-//    			//callXMLDogFilter myFilter = new callXMLDogFilter(ms[i%meterNum].strURI);
-//    			
-//    			//server client new , 20161011
-//    			callXMLDogFilter myFilter = new callXMLDogFilter(ms[i%meterNum].bytef);
-//    			
-//    			myFilter.SetTaskList(taskPool);
-//    			// myFilter.setStream(ms[i%meterNum].getStream());
-//    			/* myThreads[t] = new Thread(testFilter[t]);
-//    			myThreads[t].start(); */
-//    			Future<List<String>> result = executorService.submit(myFilter);
-//    			if(i % meterNum == 0) {
-//    				resultList = new ArrayList<Future<List<String>>>();
-//    			} 
-//    			resultList.add(result);
-//    			if(resultList.size() == meterNum) {
-//    				//ExecuteService myReducer = Executors.newFixedThreadPool(threadNum)
-//    				String taskID = (i/meterNum)+"";
-//    				
-//    				XMLDogTaskReducer reducer = (XMLDogTaskReducer) TaskReducerFactory.Create("XMLDogTaskReducer");
-//    				
-//    				reducer.typeNum = typeNum ;
-//    				reducer.queryNumPerType = xpathList.size()/typeNum;
-//    				reducer.SetID(taskID);
-//    				reducer.resultList = resultList;					
-//    				reducerService.execute(reducer);
-//    				
-//    				AnswerValueArray = reducer.getAnswerValueArray();
-//    			}
-//    			// resultList.add(result);
-//    			
-//    		}
-//    		executorService.shutdown(); 
-//    		executorService.awaitTermination(30, TimeUnit.MINUTES);
-//    		reducerService.shutdown();
-//    		reducerService.awaitTermination(30, TimeUnit.MINUTES);
-//    				
-//    		long endTime = System.currentTimeMillis();
-//    		System.out.println(("MeterNum: "+meterNum+" , ThreadNum: "+threadNum+" , "+"duration:" + (endTime - starttime)));
-//    		
-//    		System.gc();
+        	int threadNum = 10;
+    		int meterNum = list.size();
+    		//int runtime = Integer.parseInt(args[2]);
+    		//int totalDocNum = meterNum*runtime;
+    		
+    		int typeNum = 1;//指的是幾個term
+    		
+    		meterStream[] ms = new meterStream[meterNum]; 			
+    		
+    		for(int i = 0 ; i < meterNum ; i++)
+    		{
+    			ms[i] = new meterStream();
+    			//ms[i].setUrl("http://service2.allenworkspace.net/xml/xmldata/testxml"+(i+1)+".xml");
+    			//ms[i].setUrl("http://program.allenworkspace.net/xml/xmldata/testxml"+(i+1)+".xml");									
+    			//ms[i].setUrl("http://program.allenworkspace.net/xml/xmldata/testE1.xml");
+    			//ms[i].setUrl("http://program.allenworkspace.net/xml/xmldata/test20T1.xml");
+    			//ms[i].setUrl("http://program.allenworkspace.net/xml/xmldata/test20TE2.xml");
+    			ms[i].setByteArray(list.get(i));
+    		}
+    		
+    		List<String> xpathList = new ArrayList<String>();
+    		//Collections.addAll(xpathList, xpathArray);
+    		try 
+    		{
+    			//Scanner sc = new Scanner(new File("./XpathList"));
+    			Scanner sc = new Scanner(new File("testData/testXpathList"));
+    			while(sc.hasNextLine())
+    			{
+    				xpathList.add(sc.nextLine().trim());
+    			}
+    		}
+    		catch (FileNotFoundException e) 
+    		{
+    			// TODO Auto-generated catch block
+    			e.printStackTrace();
+    		}
+    		
+    		
+    		List<XMLDogTask> taskPool = null;
+
+    		if(threadNum > 0) {
+    			taskPool = TaskPool.CreateXMLDogTasks(threadNum, xpathList);
+
+    		}
+    		
+    		ExecutorService executorService = Executors.newFixedThreadPool(threadNum);
+    		
+    		ExecutorService reducerService = Executors.newCachedThreadPool(); 
+    		//ExecutorService reducerService = Executors.newFixedThreadPool(reducerNum);
+    		
+    		List<Future<List<String>>> resultList = null;
+    		
+    		long starttime = System.currentTimeMillis();
+    		
+    		for(int i = 0 ; i < list.size() ; i++ )
+    		{
+    			
+    			//callXMLDogFilter myFilter = new callXMLDogFilter(ms[i%meterNum].strURI);
+    			
+    			//server client new , 20161011
+    			callXMLDogFilter myFilter = new callXMLDogFilter(ms[i%meterNum].bytef);
+    			
+    			myFilter.SetTaskList(taskPool);
+    			// myFilter.setStream(ms[i%meterNum].getStream());
+    			/* myThreads[t] = new Thread(testFilter[t]);
+    			myThreads[t].start(); */
+    			Future<List<String>> result = executorService.submit(myFilter);
+    			if(i % meterNum == 0) {
+    				resultList = new ArrayList<Future<List<String>>>();
+    			} 
+    			resultList.add(result);
+    			if(resultList.size() == meterNum) {
+    				//ExecuteService myReducer = Executors.newFixedThreadPool(threadNum)
+    				String taskID = (i/meterNum)+"";
+    				
+    				XMLDogTaskReducer reducer = (XMLDogTaskReducer) TaskReducerFactory.Create("XMLDogTaskReducer");
+    				
+    				reducer.typeNum = typeNum ;
+    				reducer.queryNumPerType = xpathList.size()/typeNum;
+    				reducer.SetID(taskID);
+    				reducer.resultList = resultList;					
+    				//reducerService.execute(reducer);
+    				
+    				Future<BigInteger[]> reducerResult = reducerService.submit(reducer);
+    				
+    				AnswerValueArray = reducer.getAnswerValueArray();
+    			}
+    			// resultList.add(result);
+    			
+    		}
+    		executorService.shutdown(); 
+    		executorService.awaitTermination(30, TimeUnit.MINUTES);
+    		reducerService.shutdown();
+    		reducerService.awaitTermination(30, TimeUnit.MINUTES);
+    				
+    		long endTime = System.currentTimeMillis();
+    		//System.out.println(("MeterNum: "+meterNum+" , ThreadNum: "+threadNum+" , "+"duration:" + (endTime - starttime)));
+    		System.out.println(("MeterNum: "+meterNum+" , ThreadNum: "+threadNum+" , "+"duration:" + endTime));
+    		
+    		System.gc();
         }
         
     }

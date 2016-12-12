@@ -48,8 +48,6 @@ public class testCient {
 				System.exit(-1);
 			}
 			
-			CoapClient client = new CoapClient(uri);
-			
 			String[] xmlfile = {"testPubSub1.xml" , "testPubSub2.xml" , "testPubSub3.xml" ,"testPubSubAll.xml"};
 			String temp = "";
 			Scanner sc ;
@@ -73,11 +71,14 @@ public class testCient {
 			}
 			
 			//CoapResponse response = client.get();
+			
+			CoapClient client = new CoapClient(uri);
 			CoapResponse response ;
-			/*
-			for(int i = 0 ; i < 10 ; i++)
+			for(int i = 0 ; i < 100 ; i++)
 			{
-				response = client.put((timeArray[0]+","+fileList.get(3)), 0);
+				
+				//response = client.put((timeArray[0]+","+fileList.get(3)), 0);
+				response = client.put(fileList.get(3), 0);
 				if (response!=null) {
 					
 					System.out.println(response.getCode());
@@ -91,9 +92,41 @@ public class testCient {
 				} else {
 					System.out.println("No response received.");
 				}
+				
+				
+				/*
+				new Thread (()->{
+					
+					CoapClient client;
+					try 
+					{
+						client = new CoapClient(new URI(args[0]));
+						CoapResponse response = client.put(fileList.get(3), 0);
+						if (response!=null) {
+							
+							System.out.println(response.getCode());
+							System.out.println(response.getOptions());
+							System.out.println(response.getResponseText());
+							
+							System.out.println("\nADVANCED\n");
+							// access advanced API with access to more details through .advanced()
+							System.out.println(Utils.prettyPrint(response));
+							
+						} else {
+							System.out.println("No response received.");
+						}
+					} catch (URISyntaxException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					
+				}).start();;
+				*/
 			}
-			*/
 			
+			
+			
+			/*
 			for(String time :  timeArray)
 			{
 				for(int i = 0 ; i < 10 ; i++)
@@ -114,11 +147,12 @@ public class testCient {
 					}
 				}
 			}
+			*/
 			
 			/*
 			for(String scXML :  fileList)
 			{
-				response = client.put((timeA+","+scXML), 0);
+				response = client.put((scXML), 0);
 				if (response!=null) {
 					
 					System.out.println(response.getCode());
