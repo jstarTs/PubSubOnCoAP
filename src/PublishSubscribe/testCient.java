@@ -75,7 +75,7 @@ public class testCient {
 			
 			//CoapClient client = new CoapClient(uri);
 			//CoapResponse response ;
-			for(int i = 0 ; i < 30 ; i++)
+			for(int i = 0 ; i < 100 ; i++)
 			{
 				/*
 				//response = client.put((timeArray[0]+","+fileList.get(3)), 0);
@@ -105,6 +105,7 @@ public class testCient {
 						
 						//CoapResponse response = client.put(fileList.get(3), 0);
 						CoapResponse response = client.put("QQ", 0);
+						
 						if (response!=null) {
 							
 							System.out.println(response.getCode());

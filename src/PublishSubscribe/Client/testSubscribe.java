@@ -9,6 +9,7 @@ import java.util.Scanner;
 import org.eclipse.californium.core.CoapClient;
 import org.eclipse.californium.core.CoapResponse;
 import org.eclipse.californium.core.Utils;
+import org.eclipse.californium.core.WebLink;
 
 import PublishSubscribe.testCient;
 
@@ -97,6 +98,12 @@ public static void main(String args[]) throws FileNotFoundException {
 				
 			} else {
 				System.out.println("No response received.");
+			}
+			
+			for(WebLink w : client.discover())
+			{
+				
+				System.out.println(w.getURI());
 			}
 			
 		} else {
