@@ -73,11 +73,11 @@ public class testCient {
 			//CoapResponse response = client.get();
 			
 			
-			CoapClient client = new CoapClient(uri);
-			CoapResponse response ;
-			for(int i = 0 ; i < 500 ; i++)
+			//CoapClient client = new CoapClient(uri);
+			//CoapResponse response ;
+			for(int i = 0 ; i < 30 ; i++)
 			{
-				
+				/*
 				//response = client.put((timeArray[0]+","+fileList.get(3)), 0);
 				response = client.put(fileList.get(3), 0);
 				if (response!=null) {
@@ -93,16 +93,18 @@ public class testCient {
 				} else {
 					System.out.println("No response received.");
 				}
+				*/
 				
 				
-				/*
 				new Thread (()->{
 					
 					CoapClient client;
 					try 
 					{
 						client = new CoapClient(new URI(args[0]));
-						CoapResponse response = client.put(fileList.get(3), 0);
+						
+						//CoapResponse response = client.put(fileList.get(3), 0);
+						CoapResponse response = client.put("QQ", 0);
 						if (response!=null) {
 							
 							System.out.println(response.getCode());
@@ -122,7 +124,7 @@ public class testCient {
 					}
 					
 				}).start();;
-				*/
+				
 			}
 			
 			

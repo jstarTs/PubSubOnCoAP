@@ -49,6 +49,7 @@ import org.eclipse.californium.core.network.CoapEndpoint;
 import org.eclipse.californium.core.network.EndpointManager;
 import org.eclipse.californium.core.network.config.NetworkConfig;
 import org.eclipse.californium.core.server.resources.CoapExchange;
+import org.eclipse.californium.core.server.resources.ConcurrentCoapResource;
 import org.jaxen.saxpath.SAXPathException;
 import org.xml.sax.InputSource;
 
@@ -141,11 +142,13 @@ public class testTryFog extends CoapServer {
         // provide an instance of a Hello-World resource
         add(new TestResource());
         add(new TestPubSubResource());
+        add(new TestConcurrentResource("ten-threaded", 10));
     }
 
     /*
      * Definition of the Hello-World Resource
      */
+    
     class TestResource extends CoapResource 
     {
     	
@@ -251,6 +254,234 @@ public class testTryFog extends CoapServer {
         	
         	
             exchange.respond("Good");
+        }
+        
+        public void recieveData()
+        {
+        	
+        }
+        
+        public void useFilterTest(List<byte[]> list) throws InterruptedException
+        {
+        	int threadNum = 10;
+    		int meterNum = list.size();
+    		//int runtime = Integer.parseInt(args[2]);
+    		//int totalDocNum = meterNum*runtime;
+    		
+    		int typeNum = 1;//指的是幾個term
+    		
+    		meterStream[] ms = new meterStream[meterNum]; 			
+    		
+    		for(int i = 0 ; i < meterNum ; i++)
+    		{
+    			ms[i] = new meterStream();
+    			//ms[i].setUrl("http://service2.allenworkspace.net/xml/xmldata/testxml"+(i+1)+".xml");
+    			//ms[i].setUrl("http://program.allenworkspace.net/xml/xmldata/testxml"+(i+1)+".xml");									
+    			//ms[i].setUrl("http://program.allenworkspace.net/xml/xmldata/testE1.xml");
+    			//ms[i].setUrl("http://program.allenworkspace.net/xml/xmldata/test20T1.xml");
+    			//ms[i].setUrl("http://program.allenworkspace.net/xml/xmldata/test20TE2.xml");
+    			ms[i].setByteArray(list.get(i));
+    		}
+    		
+    		List<String> xpathList = new ArrayList<String>();
+    		//Collections.addAll(xpathList, xpathArray);
+    		try 
+    		{
+    			//Scanner sc = new Scanner(new File("./XpathList"));
+    			Scanner sc = new Scanner(new File("testData/testXpathList"));
+    			while(sc.hasNextLine())
+    			{
+    				xpathList.add(sc.nextLine().trim());
+    			}
+    		}
+    		catch (FileNotFoundException e) 
+    		{
+    			// TODO Auto-generated catch block
+    			e.printStackTrace();
+    		}
+    		
+    		
+    		List<XMLDogTask> taskPool = null;
+
+    		if(threadNum > 0) {
+    			taskPool = TaskPool.CreateXMLDogTasks(threadNum, xpathList);
+
+    		}
+    		
+    		ExecutorService executorService = Executors.newFixedThreadPool(threadNum);
+    		
+    		ExecutorService reducerService = Executors.newCachedThreadPool(); 
+    		//ExecutorService reducerService = Executors.newFixedThreadPool(reducerNum);
+    		
+    		List<Future<List<String>>> resultList = null;
+    		
+    		long starttime = System.currentTimeMillis();
+    		
+    		for(int i = 0 ; i < list.size() ; i++ )
+    		{
+    			
+    			//callXMLDogFilter myFilter = new callXMLDogFilter(ms[i%meterNum].strURI);
+    			
+    			//server client new , 20161011
+    			callXMLDogFilter myFilter = new callXMLDogFilter(ms[i%meterNum].bytef);
+    			
+    			myFilter.SetTaskList(taskPool);
+    			// myFilter.setStream(ms[i%meterNum].getStream());
+    			/* myThreads[t] = new Thread(testFilter[t]);
+    			myThreads[t].start(); */
+    			Future<List<String>> result = executorService.submit(myFilter);
+    			if(i % meterNum == 0) {
+    				resultList = new ArrayList<Future<List<String>>>();
+    			} 
+    			resultList.add(result);
+    			if(resultList.size() == meterNum) {
+    				//ExecuteService myReducer = Executors.newFixedThreadPool(threadNum)
+    				String taskID = (i/meterNum)+"";
+    				
+    				XMLDogTaskReducer reducer = (XMLDogTaskReducer) TaskReducerFactory.Create("XMLDogTaskReducer");
+    				
+    				reducer.typeNum = typeNum ;
+    				reducer.queryNumPerType = xpathList.size()/typeNum;
+    				reducer.SetID(taskID);
+    				reducer.resultList = resultList;					
+    				//reducerService.execute(reducer);
+    				
+    				Future<BigInteger[]> reducerResult = reducerService.submit(reducer);
+    				
+    				AnswerValueArray = reducer.getAnswerValueArray();
+    			}
+    			// resultList.add(result);
+    			
+    		}
+    		executorService.shutdown(); 
+    		executorService.awaitTermination(30, TimeUnit.MINUTES);
+    		reducerService.shutdown();
+    		reducerService.awaitTermination(30, TimeUnit.MINUTES);
+    				
+    		long endTime = System.currentTimeMillis();
+    		//System.out.println(("MeterNum: "+meterNum+" , ThreadNum: "+threadNum+" , "+"duration:" + (endTime - starttime)));
+    		System.out.println(("MeterNum: "+meterNum+" , ThreadNum: "+threadNum+" , "+"duration:" + endTime));
+    		
+    		System.gc();
+        }
+        
+    }
+    
+    class TestConcurrentResource extends ConcurrentCoapResource 
+    {
+    	
+    	List<byte[]> list = new ArrayList<byte[]>();
+    	int f;
+    	
+        public TestConcurrentResource() {
+            
+            // set resource identifier
+            super("TestConcurrentResource");
+            
+            // set display name
+            getAttributes().setTitle("Hello-World ConcurrentResource");
+        }
+        
+        public TestConcurrentResource(String name , int threadNum)
+        {
+        	super("TestConcurrentResource",threadNum);
+        	
+        	getAttributes().setTitle("Hello-World ConcurrentResource");
+        }
+
+        @Override
+        public void handleGET(CoapExchange exchange) {
+            
+            // respond to the request
+            exchange.respond("Hello World!");
+        }
+        
+        @Override
+        public void handlePUT(CoapExchange exchange) {
+        	long AccessTime = System.currentTimeMillis();
+            
+        	// respond to the request
+        	//System.out.println(exchange.getRequestText());
+        	//InputStream is = new StringBufferInputStream(exchange.getRequestText());
+        	//is = new ByteArrayInputStream(exchange.getRequestPayload());
+        	
+        	/*
+        	try 
+        	{
+				Connection conn = FogDB.getConnection();
+				Statement st = conn.createStatement();
+				
+				st.executeUpdate("INSERT INTO StorageSourceRecords VALUES (\'"+exchange.getRequestText()+"\',\'"+exchange.getSourceAddress()+"\');");
+			} 
+        	catch (ClassNotFoundException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} 
+        	catch (SQLException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+        	*/
+        	
+        	//丟DB
+        	/*
+        	try
+        	{
+        		Connection con = FogDB.getConnection();
+        		Statement st = con.createStatement();
+        		
+        		String[] payload = exchange.getRequestText().split(",");
+        		
+        		//payload[1] 內容  ， payload[0] time , exchange.getSourceAddress()
+        		//System.out.println(System.currentTimeMillis());
+        		//payload[0] = "hnClcI14k/DCCLPkEfwUnPD/V+FoGLR05+ZoYx6t5Bs";
+        		
+        		String sql;
+        		if(fm.timeIsNotNull == false)
+        		{
+        			long AccessTime = System.currentTimeMillis();
+        			fm.setInitialTime(payload[0],AccessTime);
+            		sql = "INSERT INTO StorageSourceRecords VALUES (\'"+payload[1]+"\',\'"+payload[0]+"\',\'"+exchange.getSourceAddress()+"\',"+AccessTime+");";
+        		}
+        		else
+        			sql = "INSERT INTO StorageSourceRecords VALUES (\'"+payload[1]+"\',\'"+payload[0]+"\',\'"+exchange.getSourceAddress()+"\',"+System.currentTimeMillis()+");";
+
+        		st.executeUpdate(sql);
+        		
+        	}
+        	catch(SQLException | ClassNotFoundException ex)
+        	{
+        		ex.printStackTrace();
+    			System.out.println(ex.getMessage());
+    			System.out.println(ex.getLocalizedMessage());
+        	}
+        	*/
+        	
+        	//原先想說直接丟到thread處理，目前先改直接丟DB
+        	exchange.accept();
+        	
+        	synchronized (this) 
+        	{
+        		list.add(exchange.getRequestPayload());
+            	//System.out.println(list.size());
+            	if(list.size() == 1)
+            		System.out.println(AccessTime);
+            	/*
+            	if(list.size() == listSize)
+            	{
+            		try 
+            		{
+            			useFilterTest(list);
+            			list.clear();
+    				} catch (InterruptedException e) {
+    					// TODO Auto-generated catch block
+    					e.printStackTrace();
+    				}
+            	}
+            	*/
+			}
+        	
+        	exchange.respond("Good");
         }
         
         public void recieveData()
