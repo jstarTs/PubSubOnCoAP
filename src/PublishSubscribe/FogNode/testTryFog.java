@@ -78,6 +78,7 @@ public class testTryFog extends CoapServer {
 	
 	BigInteger[] AnswerValueArray;
 	FilterManagement fm = new FilterManagement();
+	List<byte[]> list = new ArrayList<byte[]>();
 	
 	static int listSize;
 	
@@ -370,8 +371,9 @@ public class testTryFog extends CoapServer {
     class TestConcurrentResource extends ConcurrentCoapResource 
     {
     	
-    	List<byte[]> list = new ArrayList<byte[]>();
+    	//List<byte[]> list = new ArrayList<byte[]>();
     	int f;
+    	long starttime ;
     	
         public TestConcurrentResource() {
             
@@ -460,13 +462,16 @@ public class testTryFog extends CoapServer {
         	//原先想說直接丟到thread處理，目前先改直接丟DB
         	exchange.accept();
         	
-        	synchronized (this) 
+        	synchronized (list) 
         	{
         		list.add(exchange.getRequestPayload());
             	//System.out.println(list.size());
             	if(list.size() == 1)
-            		System.out.println(AccessTime);
-            	/*
+            	{
+            		//System.out.println(AccessTime);
+            		starttime = AccessTime;
+            	}
+            		
             	if(list.size() == listSize)
             	{
             		try 
@@ -478,7 +483,7 @@ public class testTryFog extends CoapServer {
     					e.printStackTrace();
     				}
             	}
-            	*/
+            	
 			}
         	
         	exchange.respond("Good");
@@ -543,7 +548,7 @@ public class testTryFog extends CoapServer {
     		
     		List<Future<List<String>>> resultList = null;
     		
-    		long starttime = System.currentTimeMillis();
+    		//long starttime = System.currentTimeMillis();
     		
     		for(int i = 0 ; i < list.size() ; i++ )
     		{
@@ -587,8 +592,8 @@ public class testTryFog extends CoapServer {
     		reducerService.awaitTermination(30, TimeUnit.MINUTES);
     				
     		long endTime = System.currentTimeMillis();
-    		//System.out.println(("MeterNum: "+meterNum+" , ThreadNum: "+threadNum+" , "+"duration:" + (endTime - starttime)));
-    		System.out.println(("MeterNum: "+meterNum+" , ThreadNum: "+threadNum+" , "+"duration:" + endTime));
+    		System.out.println(("MeterNum: "+meterNum+" , ThreadNum: "+threadNum+" , "+"duration:" + (endTime - starttime)));
+    		//System.out.println(("MeterNum: "+meterNum+" , ThreadNum: "+threadNum+" , "+"duration:" + endTime));
     		
     		System.gc();
         }

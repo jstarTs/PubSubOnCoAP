@@ -41,9 +41,14 @@ public class testCient {
 		if (args.length > 0) {
 			
 			// input URI from command line arguments
-			try {
-				uri = new URI(args[0]);
-			} catch (URISyntaxException e) {
+			try 
+			{
+				//uri = new URI(args[0]);
+				
+				uri = new URI("coap://140.120.15.159:5683/TestConcurrentResource");
+				//uri = new URI("coap://140.120.15.136:5683/TestConcurrentResource");
+			} 
+			catch (URISyntaxException e) {
 				System.err.println("Invalid URI: " + e.getMessage());
 				System.exit(-1);
 			}
@@ -73,11 +78,11 @@ public class testCient {
 			//CoapResponse response = client.get();
 			
 			
-			//CoapClient client = new CoapClient(uri);
-			//CoapResponse response ;
-			for(int i = 0 ; i < 100 ; i++)
+			CoapClient client = new CoapClient(uri);
+			CoapResponse response ;
+			for(int i = 0 ; i < 5000 ; i++)
 			{
-				/*
+				
 				//response = client.put((timeArray[0]+","+fileList.get(3)), 0);
 				response = client.put(fileList.get(3), 0);
 				if (response!=null) {
@@ -93,9 +98,9 @@ public class testCient {
 				} else {
 					System.out.println("No response received.");
 				}
-				*/
 				
 				
+				/*
 				new Thread (()->{
 					
 					CoapClient client;
@@ -124,8 +129,8 @@ public class testCient {
 						e.printStackTrace();
 					}
 					
-				}).start();;
-				
+				}).start();
+				*/
 			}
 			
 			

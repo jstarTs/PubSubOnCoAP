@@ -37,10 +37,12 @@ public class testSinkXMLDog
 		
 		int threadNum = Integer.parseInt(args[0]);
 		int meterNum = Integer.parseInt(args[1]);
-		int runtime = Integer.parseInt(args[2]);
+		//int runtime = Integer.parseInt(args[2]);
+		int runtime = 1;
 		int totalDocNum = meterNum*runtime;
 		
-		int typeNum = Integer.parseInt(args[3]);
+		//int typeNum = Integer.parseInt(args[3]);
+		int typeNum = 2;
 		
 		//int reducerNum = Integer.parseInt(args[3]);
 		
@@ -62,6 +64,8 @@ public class testSinkXMLDog
 				"/a85EF20040AB4A17A1908D5575C2A1F0D/aA76D4EF5F3F6A672BBFAB2865563E530//text()",
 				"/a85EF20040AB4A17A1908D5575C2A1F0D/a6A0D9EAEE314C567FD72FB97EE707A36//text()"};
 		 */
+		
+		long starttime = System.currentTimeMillis();
 		
 		meterStream[] ms = new meterStream[meterNum]; 			
 		
@@ -122,7 +126,7 @@ public class testSinkXMLDog
 		
 		List<Future<List<String>>> resultList = null;
 		
-		long starttime = System.currentTimeMillis();
+		//long starttime = System.currentTimeMillis();
 		
 		for(int i = 0 ; i < totalDocNum ; i++ )
 		{
@@ -164,6 +168,7 @@ public class testSinkXMLDog
 		reducerService.awaitTermination(30, TimeUnit.MINUTES);
 				
 		long endTime = System.currentTimeMillis();
+		System.out.println(starttime+" , "+endTime);
 		System.out.println(("MeterNum: "+meterNum+" , ThreadNum: "+threadNum+" , "+"duration:" + (endTime - starttime)));
 		
 		System.gc();
