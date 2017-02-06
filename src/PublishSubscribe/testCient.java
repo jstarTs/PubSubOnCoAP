@@ -17,15 +17,36 @@ package PublishSubscribe;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.eclipse.californium.core.CoapClient;
 import org.eclipse.californium.core.CoapResponse;
 import org.eclipse.californium.core.Utils;
+import org.eclipse.californium.core.network.CoapEndpoint;
+import org.eclipse.californium.core.network.config.NetworkConfig;
+import org.eclipse.californium.scandium.DTLSConnector;
+import org.eclipse.californium.scandium.config.DtlsConnectorConfig;
+import org.eclipse.californium.scandium.dtls.cipher.CipherSuite;
+import org.eclipse.californium.scandium.dtls.pskstore.InMemoryPskStore;
+import org.eclipse.californium.scandium.dtls.pskstore.StaticPskStore;
+
+import PublishSubscribe.FogNode.testTryFog;
 
 
 public class testCient {
@@ -34,7 +55,66 @@ public class testCient {
 	 * Application entry point.
 	 * 
 	 */	
-	public static void main(String args[]) throws FileNotFoundException {
+	private static final String TRUST_STORE_PASSWORD = "rootPass";
+	private static final String KEY_STORE_PASSWORD = "endPass";
+	private static final String KEY_STORE_LOCATION = "PublishSubscribe/keyStore.jks";
+	private static final String TRUST_STORE_LOCATION = "PublishSubscribe/trustStore.jks";
+	
+	DTLSConnector dtlsConnector;
+	KeyStore trustStore,keyStore;
+	
+	public testCient()
+	{
+		
+    	try 
+    	{
+        	// load the trust store
+        	trustStore = KeyStore.getInstance("JKS");
+        	InputStream inTrust = testTryFog.class.getClassLoader().getResourceAsStream(TRUST_STORE_LOCATION);
+    		trustStore.load(inTrust, TRUST_STORE_PASSWORD.toCharArray());
+    		// You can load multiple certificates if needed
+        	Certificate[] trustedCertificates = new Certificate[1];
+        	trustedCertificates[0] = trustStore.getCertificate("root");
+        	
+        	// load the key store
+        	keyStore = KeyStore.getInstance("JKS");
+        	InputStream in = testTryFog.class.getClassLoader().getResourceAsStream(KEY_STORE_LOCATION);
+        	keyStore.load(in, KEY_STORE_PASSWORD.toCharArray());
+
+        	DtlsConnectorConfig.Builder builder = new DtlsConnectorConfig.Builder(new InetSocketAddress(0));
+        	builder.setPskStore(new StaticPskStore("Client_identity", "secretPSK".getBytes()));
+        	builder.setIdentity((PrivateKey)keyStore.getKey("client", KEY_STORE_PASSWORD.toCharArray()),
+        						keyStore.getCertificateChain("client"), true);
+        	builder.setTrustStore(trustedCertificates);
+        	//builder.setMaxConnections(20000);
+        	//builder.setClientAuthenticationRequired(true);
+        	//builder.setRetransmissionTimeout(10000);
+        	dtlsConnector = new DTLSConnector(builder.build());
+        	
+        	
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (CertificateException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (KeyStoreException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (UnrecoverableKeyException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+    	
+	}
+	
+	public static void main(String args[]) throws URISyntaxException, IOException, InterruptedException {
+		
+		testCient test = new testCient();
 		
 		URI uri = null; // URI parameter of the request
 		
@@ -45,8 +125,11 @@ public class testCient {
 			{
 				//uri = new URI(args[0]);
 				
-				uri = new URI("coap://140.120.15.159:5683/TestConcurrentResource");
+				//uri = new URI("coap://140.120.15.159:5683/TestConcurrentResource");
 				//uri = new URI("coap://140.120.15.136:5683/TestConcurrentResource");
+				//uri = new URI("coap://127.0.0.1:5684/TestConcurrentResource");
+				uri = new URI("coap://127.0.0.1:5683/test1");
+			
 			} 
 			catch (URISyntaxException e) {
 				System.err.println("Invalid URI: " + e.getMessage());
@@ -80,11 +163,21 @@ public class testCient {
 			
 			CoapClient client = new CoapClient(uri);
 			CoapResponse response ;
-			for(int i = 0 ; i < 5000 ; i++)
+			//client.setEndpoint(new CoapEndpoint(test.dtlsConnector, NetworkConfig.getStandard()));
+			//int index;
+			ExecutorService executorService = Executors.newFixedThreadPool(20);
+			//executorService.submit(test.new Request("QQ", 100));
+			//Thread.sleep(2000);
+			for(int i = 1 ; i <= 20 ; i++)
 			{
-				
+				/*
+				//test.dtlsConnector.start();
+				String t = "coaps://140.120.15.155/test1";
+				uri = new URI(t);
+				client.setURI(t);
 				//response = client.put((timeArray[0]+","+fileList.get(3)), 0);
 				response = client.put(fileList.get(3), 0);
+				//response = client.get();
 				if (response!=null) {
 					
 					System.out.println(response.getCode());
@@ -98,32 +191,42 @@ public class testCient {
 				} else {
 					System.out.println("No response received.");
 				}
-				
-				
+				test.dtlsConnector.stop();
+				System.out.println(test.dtlsConnector.isRunning());
+				*/
 				/*
+				int index = i;
 				new Thread (()->{
+					URI uris;
 					
-					CoapClient client;
 					try 
 					{
-						client = new CoapClient(new URI(args[0]));
 						
-						//CoapResponse response = client.put(fileList.get(3), 0);
-						CoapResponse response = client.put("QQ", 0);
+						//uris = new URI("coap://127.0.0.1:5683/test"+index);
+						uris = new URI("coap://140.120.15.136:5683/test"+index);
+						//uris = new URI("coap://140.120.15.159:5683/test"+index);
 						
-						if (response!=null) {
-							
-							System.out.println(response.getCode());
-							System.out.println(response.getOptions());
-							System.out.println(response.getResponseText());
-							
-							System.out.println("\nADVANCED\n");
-							// access advanced API with access to more details through .advanced()
-							System.out.println(Utils.prettyPrint(response));
-							
-						} else {
-							System.out.println("No response received.");
-						}
+					CoapClient client;
+					client = new CoapClient(uris);
+					System.out.println();
+					//client.
+					CoapResponse response = client.put(fileList.get(3), index);
+					//CoapResponse response = client.put("QQ", 0);
+					
+					if (response!=null) {
+						
+						System.out.println(response.getCode());
+						System.out.println(response.getOptions());
+						System.out.println(response.getResponseText());
+						
+						System.out.println("\nADVANCED\n");
+						// access advanced API with access to more details through .advanced()
+						System.out.println(Utils.prettyPrint(response));
+						
+					} else {
+						System.out.println("No response received.");
+					}
+					
 					} catch (URISyntaxException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -131,8 +234,11 @@ public class testCient {
 					
 				}).start();
 				*/
+				
+				executorService.submit(test.new Request(fileList.get(3), i));
+				
 			}
-			
+			executorService.shutdown();
 			
 			
 			/*
@@ -187,6 +293,144 @@ public class testCient {
 			System.out.println("Usage: " + testCient.class.getSimpleName() + " URI");
 			System.out.println("  URI: The CoAP URI of the remote resource to GET");
 		}
+	}
+	
+	public DTLSConnector connector()
+	{
+		Certificate[] trustedCertificates = new Certificate[1];
+		DTLSConnector dtlsConnector;
+		
+		try {
+			trustedCertificates[0] = trustStore.getCertificate("root");
+			
+			DtlsConnectorConfig.Builder builder = new DtlsConnectorConfig.Builder(new InetSocketAddress(0));
+	    	builder.setPskStore(new StaticPskStore("Client_identity", "secretPSK".getBytes()));
+	    	builder.setIdentity((PrivateKey)keyStore.getKey("client", KEY_STORE_PASSWORD.toCharArray()),
+	    						keyStore.getCertificateChain("client"), true);
+	    	builder.setTrustStore(trustedCertificates);
+	    	dtlsConnector = new DTLSConnector(builder.build());
+	    	
+	    	return dtlsConnector;
+		} catch (KeyStoreException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (UnrecoverableKeyException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+    	return null;
+	}
+	
+	public class Request implements Runnable
+	{
+		String document;
+		int index;
+		
+		public Request() {
+			// TODO Auto-generated constructor stub
+		}
+		
+		public Request(String doc , int index)
+		{
+			document = doc;
+			this.index = index;
+		}
+		
+		@Override
+		public void run() {
+			// TODO Auto-generated method stub
+			URI uris;
+			
+			try 
+			{
+				/*
+				if(index == 0)
+					uris = new URI("coap://127.0.0.1:5683/test");
+				else
+					uris = new URI("coap://127.0.0.1:5683/test1");
+					*/
+				
+				//uris = new URI("coap://140.120.15.155:5684/test"+index);
+				//uris = new URI("coap://140.120.15.136:5683/test"+index);
+				//uris = new URI("coap://140.120.15.159:5683/test"+index);
+				
+				//uris = new URI("coaps://140.120.15.155/test"+index);
+				//uris = new URI("coaps://140.120.15.136/test"+index);
+				uris = new URI("coaps://140.120.15.159/test"+index);
+			
+			DTLSConnector dtlsConnectorR = connector();
+			
+			CoapClient client;
+			client = new CoapClient(uris);
+			client.setEndpoint(new CoapEndpoint(dtlsConnectorR, NetworkConfig.getStandard()));
+			//dtlsConnectorR.start();
+			//CoapResponse response = client.put(fileList.get(3), index);
+			CoapResponse response = client.put(document, index);
+			//CoapResponse response = client.put("QQ", 0);
+			
+			if (response!=null) {
+				
+				System.out.println(response.getCode());
+				System.out.println(response.getOptions());
+				System.out.println(response.getResponseText());
+				
+				System.out.println("\nADVANCED\n");
+				// access advanced API with access to more details through .advanced()
+				System.out.println(Utils.prettyPrint(response));
+				
+			} 
+			else 
+			{
+				//dtlsConnectorR.forceResumeSessionFor(peer);
+				System.out.println("No response received.");
+				/*
+				dtlsConnectorR.stop();
+				
+				dtlsConnectorR = connector();
+				client = new CoapClient(uris);
+				client.setEndpoint(new CoapEndpoint(dtlsConnectorR, NetworkConfig.getStandard()));
+				dtlsConnectorR.start();
+				response = client.put(document, index);
+				
+				//boolean isNotNull = false ;
+				while(response!=null)
+				{
+					dtlsConnectorR.stop();
+					
+					dtlsConnectorR = connector();
+					client = new CoapClient(uris);
+					client.setEndpoint(new CoapEndpoint(dtlsConnectorR, NetworkConfig.getStandard()));
+					dtlsConnectorR.start();
+					response = client.put(document, index);
+					
+					//isNotNull = (response!=null);
+				}
+				
+				System.out.println(response.getCode());
+				System.out.println(response.getOptions());
+				System.out.println(response.getResponseText());
+				
+				System.out.println("\nADVANCED\n");
+				// access advanced API with access to more details through .advanced()
+				System.out.println(Utils.prettyPrint(response));
+				*/
+			}
+			
+			//dtlsConnectorR.stop();
+			
+			} catch (URISyntaxException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				System.err.println("Invalid URI: " + e.getMessage());
+				System.exit(-1);
+			}
+			
+		}
+		
 	}
 
 }

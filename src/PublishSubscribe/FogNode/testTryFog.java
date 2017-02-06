@@ -21,13 +21,20 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringBufferInputStream;
 import java.math.BigInteger;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -39,17 +46,21 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
 import javax.xml.namespace.QName;
 import javax.xml.xpath.XPathException;
 
-import org.eclipse.californium.core.CoapResource;
-import org.eclipse.californium.core.CoapServer;
 import org.eclipse.californium.core.network.CoapEndpoint;
 import org.eclipse.californium.core.network.EndpointManager;
 import org.eclipse.californium.core.network.config.NetworkConfig;
 import org.eclipse.californium.core.server.resources.CoapExchange;
 import org.eclipse.californium.core.server.resources.ConcurrentCoapResource;
+import org.eclipse.californium.scandium.DTLSConnector;
+import org.eclipse.californium.scandium.ScandiumLogger;
+import org.eclipse.californium.scandium.config.DtlsConnectorConfig;
+import org.eclipse.californium.scandium.dtls.cipher.CipherSuite;
+import org.eclipse.californium.scandium.dtls.pskstore.InMemoryPskStore;
 import org.jaxen.saxpath.SAXPathException;
 import org.xml.sax.InputSource;
 
@@ -71,33 +82,74 @@ import trial.testFilter.useXmldog;
 
 public class testTryFog extends CoapServer {
 
+	
+//	static {
+//		CaliforniumLogger.initialize();
+//		CaliforniumLogger.setLevel(Level.CONFIG);
+//		ScandiumLogger.initialize();
+//		ScandiumLogger.setLevel(Level.FINER);
+//	}
+	
 	private static final int COAP_PORT = NetworkConfig.getStandard().getInt(NetworkConfig.Keys.COAP_PORT);
     /*
      * Application entry point.
      */
+	public static final int DTLS_PORT = NetworkConfig.getStandard().getInt(NetworkConfig.Keys.COAP_SECURE_PORT);
+	
+	private static final String TRUST_STORE_PASSWORD = "rootPass";
+	private static final String KEY_STORE_PASSWORD = "endPass";
+	private static final String KEY_STORE_LOCATION = "PublishSubscribe/keyStore.jks";
+	private static final String TRUST_STORE_LOCATION = "PublishSubscribe/trustStore.jks";
 	
 	BigInteger[] AnswerValueArray;
 	FilterManagement fm = new FilterManagement();
 	List<byte[]> list = new ArrayList<byte[]>();
+	long starttime ;
 	
-	static int listSize;
+	static int listSize , threads;
 	
     public static void main(String[] args) {
         
-        listSize = Integer.parseInt(args[0]);
+    	//args[0] -> data number ; args[1] -> thread number
+    	
+    	listSize = Integer.parseInt(args[0]);
+    	threads = Integer.parseInt(args[1]);
     	
     	try {
 
         	
         	// create server
-            testTryFog server = new testTryFog();
+            //testTryFog server = new testTryFog();
+            
+            testTryFog server = new testTryFog(listSize);
             
             //server.fm.setSensorNum(4);
             //server.fm.setSensorNum(Integer.parseInt(args[0]) );
             
+            
+            
             // add endpoints on all IP addresses
-            server.addEndpoints();
-            server.start();
+            try 
+            {
+				server.addEndpoints();
+				server.start();
+			} catch (KeyStoreException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (NoSuchAlgorithmException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (CertificateException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (UnrecoverableKeyException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+            
             
             //server.fm.run();//用DB時用
             
@@ -123,15 +175,57 @@ public class testTryFog extends CoapServer {
 
     /**
      * Add individual endpoints listening on default CoAP port on all IPv4 addresses of all network interfaces.
+     * @throws KeyStoreException 
+     * @throws IOException 
+     * @throws CertificateException 
+     * @throws NoSuchAlgorithmException 
+     * @throws UnrecoverableKeyException 
      */
-    private void addEndpoints() {
+    private void addEndpoints() throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, UnrecoverableKeyException 
+    {
+    	// Pre-shared secrets
+    	InMemoryPskStore pskStore = new InMemoryPskStore();
+    	pskStore.setKey("password", "sesame".getBytes()); // from ETSI Plugtest test spec
+
+    	// load the trust store
+    	KeyStore trustStore = KeyStore.getInstance("JKS");
+    	InputStream inTrust = testTryFog.class.getClassLoader().getResourceAsStream(TRUST_STORE_LOCATION);
+    	trustStore.load(inTrust, TRUST_STORE_PASSWORD.toCharArray());
+
+    	// You can load multiple certificates if needed
+    	Certificate[] trustedCertificates = new Certificate[1];
+    	trustedCertificates[0] = trustStore.getCertificate("root");
+    	
+    	// load the key store
+    	KeyStore keyStore = KeyStore.getInstance("JKS");
+    	InputStream in = testTryFog.class.getClassLoader().getResourceAsStream(KEY_STORE_LOCATION);
+    	keyStore.load(in, KEY_STORE_PASSWORD.toCharArray());
+		
     	for (InetAddress addr : EndpointManager.getEndpointManager().getNetworkInterfaces()) {
     		// only binds to IPv4 addresses and localhost
 			if (addr instanceof Inet4Address || addr.isLoopbackAddress()) {
-				InetSocketAddress bindToAddress = new InetSocketAddress(addr, COAP_PORT);
-				addEndpoint(new CoapEndpoint(bindToAddress));
+				DtlsConnectorConfig.Builder config = new DtlsConnectorConfig.Builder(new InetSocketAddress(addr,DTLS_PORT));
+				config.setSupportedCipherSuites(new CipherSuite[]{CipherSuite.TLS_PSK_WITH_AES_128_CCM_8,
+						CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8});
+				config.setPskStore(pskStore);
+				config.setIdentity((PrivateKey)keyStore.getKey("server", KEY_STORE_PASSWORD.toCharArray()),
+						keyStore.getCertificateChain("server"), true);
+				config.setTrustStore(trustedCertificates);
+				//config.
+				DTLSConnector connector = new DTLSConnector(config.build());
+				
+				addEndpoint(new CoapEndpoint(connector,NetworkConfig.getStandard()));
+				
+//				InetSocketAddress bindToAddress = new InetSocketAddress(addr, COAP_PORT);
+//				addEndpoint(new CoapEndpoint(bindToAddress));
 			}
 		}
+    	
+    	// server.addEndpoint(new CoAPEndpoint(new DTLSConnector(new InetSocketAddress("::1", DTLS_PORT)), NetworkConfig.getStandard()));
+		// server.addEndpoint(new CoAPEndpoint(new DTLSConnector(new InetSocketAddress("127.0.0.1", DTLS_PORT)), NetworkConfig.getStandard()));
+		// server.addEndpoint(new CoAPEndpoint(new DTLSConnector(new InetSocketAddress("2a01:c911:0:2010::10", DTLS_PORT)), NetworkConfig.getStandard()));
+		// server.addEndpoint(new CoAPEndpoint(new DTLSConnector(new InetSocketAddress("10.200.1.2", DTLS_PORT)), NetworkConfig.getStandard()));
+
     }
 
     /*
@@ -142,8 +236,18 @@ public class testTryFog extends CoapServer {
         
         // provide an instance of a Hello-World resource
         add(new TestResource());
+        add(new TestResource("test1"));
         add(new TestPubSubResource());
         add(new TestConcurrentResource("ten-threaded", 10));
+    }
+    
+    public testTryFog(int numberResource) throws SocketException
+    {
+    	add(new TestResource());
+    	for(int i = 1 ; i <= numberResource ; i++)
+    	{
+    		add(new TestResource("test"+i));
+    	}
     }
 
     /*
@@ -153,8 +257,9 @@ public class testTryFog extends CoapServer {
     class TestResource extends CoapResource 
     {
     	
-    	List<byte[]> list = new ArrayList<byte[]>();
+    	//List<byte[]> list = new ArrayList<byte[]>();
     	int f;
+    	//long starttime ;
     	
         public TestResource() {
             
@@ -164,7 +269,16 @@ public class testTryFog extends CoapServer {
             // set display name
             getAttributes().setTitle("Hello-World Resource");
         }
-
+        
+        public TestResource(String name) {
+            
+            // set resource identifier
+            super(name);
+            
+            // set display name
+            getAttributes().setTitle("Hello-World Resource" + " : "+name);
+        }
+        
         @Override
         public void handleGET(CoapExchange exchange) {
             
@@ -233,6 +347,7 @@ public class testTryFog extends CoapServer {
         	}
         	*/
         	
+        	/*
         	//原先想說直接丟到thread處理，目前先改直接丟DB
         	list.add(exchange.getRequestPayload());
         	//System.out.println(list.size());
@@ -250,8 +365,32 @@ public class testTryFog extends CoapServer {
 					e.printStackTrace();
 				}
         	}
-        	
-        	
+        	*/
+        	synchronized (list) 
+        	{
+        		list.add(exchange.getRequestPayload());
+            	//System.out.println(list.size());
+            	if(list.size() == 1)
+            	{
+            		//System.out.println(AccessTime);
+            		starttime = AccessTime;
+            	}
+            		
+            	if(list.size() == listSize)
+            	{
+            		
+            		try 
+            		{
+            			useFilterTest(list);
+            			list.clear();
+    				} catch (InterruptedException e) {
+    					// TODO Auto-generated catch block
+    					e.printStackTrace();
+    				}
+    				
+            	}
+            	
+			}
         	
         	
             exchange.respond("Good");
@@ -264,8 +403,9 @@ public class testTryFog extends CoapServer {
         
         public void useFilterTest(List<byte[]> list) throws InterruptedException
         {
-        	int threadNum = 10;
-    		int meterNum = list.size();
+        	//int threadNum = 5;
+        	int threadNum = threads;
+        	int meterNum = list.size();
     		//int runtime = Integer.parseInt(args[2]);
     		//int totalDocNum = meterNum*runtime;
     		
@@ -316,7 +456,7 @@ public class testTryFog extends CoapServer {
     		
     		List<Future<List<String>>> resultList = null;
     		
-    		long starttime = System.currentTimeMillis();
+    		//long starttime = System.currentTimeMillis();
     		
     		for(int i = 0 ; i < list.size() ; i++ )
     		{
@@ -360,8 +500,8 @@ public class testTryFog extends CoapServer {
     		reducerService.awaitTermination(30, TimeUnit.MINUTES);
     				
     		long endTime = System.currentTimeMillis();
-    		//System.out.println(("MeterNum: "+meterNum+" , ThreadNum: "+threadNum+" , "+"duration:" + (endTime - starttime)));
-    		System.out.println(("MeterNum: "+meterNum+" , ThreadNum: "+threadNum+" , "+"duration:" + endTime));
+    		System.out.println(("MeterNum: "+meterNum+" , ThreadNum: "+threadNum+" , "+"duration:" + (endTime - starttime)));
+    		//System.out.println(("MeterNum: "+meterNum+" , ThreadNum: "+threadNum+" , "+"duration:" + endTime));
     		
     		System.gc();
         }
@@ -373,7 +513,7 @@ public class testTryFog extends CoapServer {
     	
     	//List<byte[]> list = new ArrayList<byte[]>();
     	int f;
-    	long starttime ;
+    	//long starttime ;
     	
         public TestConcurrentResource() {
             
@@ -474,6 +614,7 @@ public class testTryFog extends CoapServer {
             		
             	if(list.size() == listSize)
             	{
+            		/*
             		try 
             		{
             			useFilterTest(list);
@@ -482,6 +623,7 @@ public class testTryFog extends CoapServer {
     					// TODO Auto-generated catch block
     					e.printStackTrace();
     				}
+    				*/
             	}
             	
 			}
@@ -496,7 +638,7 @@ public class testTryFog extends CoapServer {
         
         public void useFilterTest(List<byte[]> list) throws InterruptedException
         {
-        	int threadNum = 10;
+        	int threadNum = 15;
     		int meterNum = list.size();
     		//int runtime = Integer.parseInt(args[2]);
     		//int totalDocNum = meterNum*runtime;
