@@ -382,7 +382,7 @@ public class testTryFog extends CoapServer {
             		try 
             		{
             			useFilterTest(list);
-            			list.clear();
+            			list = new ArrayList<byte[]>();
     				} catch (InterruptedException e) {
     					// TODO Auto-generated catch block
     					e.printStackTrace();

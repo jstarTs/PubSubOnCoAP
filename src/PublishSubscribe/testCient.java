@@ -125,10 +125,10 @@ public class testCient {
 			{
 				//uri = new URI(args[0]);
 				
-				//uri = new URI("coap://140.120.15.159:5683/TestConcurrentResource");
+				uri = new URI("coap://140.120.15.159:5683/TestConcurrentResource");
 				//uri = new URI("coap://140.120.15.136:5683/TestConcurrentResource");
 				//uri = new URI("coap://127.0.0.1:5684/TestConcurrentResource");
-				uri = new URI("coap://127.0.0.1:5683/test1");
+				//uri = new URI("coap://127.0.0.1:5683/test1");
 			
 			} 
 			catch (URISyntaxException e) {
@@ -136,7 +136,8 @@ public class testCient {
 				System.exit(-1);
 			}
 			
-			String[] xmlfile = {"testPubSub1.xml" , "testPubSub2.xml" , "testPubSub3.xml" ,"testPubSubAll.xml"};
+			//String[] xmlfile = {"testPubSub1.xml" , "testPubSub2.xml" , "testPubSub3.xml" ,"testPubSubAll.xml"};
+			String[] xmlfile = {"testPubSub_2K.xml" , "testPubSub_4K.xml" , "testPubSub_6K.xml" ,"testPubSub_8K.xml","testPubSub_10K.xml","testPubSub_12K.xml"};
 			String temp = "";
 			Scanner sc ;
 			List<String> fileList = new ArrayList<String>();
@@ -165,10 +166,10 @@ public class testCient {
 			CoapResponse response ;
 			//client.setEndpoint(new CoapEndpoint(test.dtlsConnector, NetworkConfig.getStandard()));
 			//int index;
-			ExecutorService executorService = Executors.newFixedThreadPool(20);
+			ExecutorService executorService = Executors.newFixedThreadPool(10);
 			//executorService.submit(test.new Request("QQ", 100));
 			//Thread.sleep(2000);
-			for(int i = 1 ; i <= 20 ; i++)
+			for(int i = 1 ; i <= 400 ; i++)
 			{
 				/*
 				//test.dtlsConnector.start();
@@ -235,7 +236,7 @@ public class testCient {
 				}).start();
 				*/
 				
-				executorService.submit(test.new Request(fileList.get(3), i));
+				executorService.submit(test.new Request(fileList.get(0), i));
 				
 			}
 			executorService.shutdown();
