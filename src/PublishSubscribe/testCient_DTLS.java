@@ -50,7 +50,7 @@ import org.eclipse.californium.scandium.dtls.pskstore.StaticPskStore;
 import PublishSubscribe.FogNode.testTryFog;
 
 
-public class testCient {
+public class testCient_DTLS {
 
 	/*
 	 * Application entry point.
@@ -64,7 +64,7 @@ public class testCient {
 	DTLSConnector dtlsConnector;
 	KeyStore trustStore,keyStore;
 	
-	public testCient()
+	public testCient_DTLS()
 	{
 		
     	try 
@@ -115,7 +115,7 @@ public class testCient {
 	
 	public static void main(String args[]) throws URISyntaxException, IOException, InterruptedException {
 		
-		testCient test = new testCient();
+		testCient_DTLS test = new testCient_DTLS();
 		
 		URI uri = null; // URI parameter of the request
 		
@@ -164,13 +164,13 @@ public class testCient {
 			
 			//new URI("coaps://140.120.15.159/test1");
 			
-//			NetworkConfig config = new NetworkConfig();
-//			config.setInt(NetworkConfig.Keys.PREFERRED_BLOCK_SIZE,1024);
-//			CoapEndpoint endpoint = new CoapEndpoint(config);
-//			
-//			CoapClient client = new CoapClient(uri);
-//			
-//			client.setEndpoint(endpoint);
+			NetworkConfig config = new NetworkConfig();
+			config.setInt(NetworkConfig.Keys.PREFERRED_BLOCK_SIZE,1024);
+			CoapEndpoint endpoint = new CoapEndpoint(config);
+			
+			CoapClient client = new CoapClient(uri);
+			
+			client.setEndpoint(endpoint);
 			
 //			CoapResponse response ;
 //			response = client.();
@@ -311,13 +311,13 @@ public class testCient {
 //  				executorService.submit(test.new Request(fileList.get(0), i));
 //  			}
 
-  			for(int runtime=1 ; runtime <= 11 ;runtime++)
+  			for(int runtime=1 ; runtime <= 1 ;runtime++)
   			{
   				for(int i = 1 ; i <= 300 ; i++)
   	  			{
-  	  				executorService.submit(test.new Request(fileList.get(2), i));
+  	  				executorService.submit(test.new Request(fileList.get(1), i));
   	  			}
-  	  			Thread.sleep(5000);
+  	  			//Thread.sleep(30000);
   			}
 			
 			executorService.shutdown();
@@ -372,9 +372,40 @@ public class testCient {
 			System.out.println("Californium (Cf) GET Client");
 			System.out.println("(c) 2014, Institute for Pervasive Computing, ETH Zurich");
 			System.out.println();
-			System.out.println("Usage: " + testCient.class.getSimpleName() + " URI");
+			System.out.println("Usage: " + testCient_DTLS.class.getSimpleName() + " URI");
 			System.out.println("  URI: The CoAP URI of the remote resource to GET");
 		}
+	}
+	
+	public DTLSConnector connector()
+	{
+		Certificate[] trustedCertificates = new Certificate[1];
+		DTLSConnector dtlsConnector;
+		
+		try {
+			trustedCertificates[0] = trustStore.getCertificate("root");
+			
+			DtlsConnectorConfig.Builder builder = new DtlsConnectorConfig.Builder(new InetSocketAddress(0));
+			builder.setRetransmissionTimeout(20000);
+	    	builder.setPskStore(new StaticPskStore("Client_identity", "secretPSK".getBytes()));
+	    	builder.setIdentity((PrivateKey)keyStore.getKey("client", KEY_STORE_PASSWORD.toCharArray()),
+	    						keyStore.getCertificateChain("client"), true);
+	    	builder.setTrustStore(trustedCertificates);
+	    	dtlsConnector = new DTLSConnector(builder.build());
+	    	
+	    	return dtlsConnector;
+		} catch (KeyStoreException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (UnrecoverableKeyException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+    	return null;
 	}
 	
 	public class Request implements Runnable
@@ -407,14 +438,26 @@ public class testCient {
 					*/
 				
 				//uris = new URI("coap://140.120.15.155:5684/test"+index);
-				uris = new URI("coap://140.120.15.136:5683/test"+index);
+				//uris = new URI("coap://140.120.15.136:5683/test"+index);
 				//uris = new URI("coap://140.120.15.159:5683/test"+index);
 				
 				//uris = new URI("coaps://140.120.15.155/test"+index);
-				//uris = new URI("coaps://140.120.15.136/test"+index);
-				//uris = new URI("coaps://140.120.15.159/test"+index);
+				//uris = new URI("coaps://140.120.15.136:5684/test"+index);
+				uris = new URI("coaps://140.120.15.159/test"+index);
 				
 				//uris = new URI("coaps://140.120.15.155:5683/test1");
+				//uris = new URI("coaps://140.120.15.153:5684/test1");
+			
+			DTLSConnector dtlsConnectorR = connector();
+			
+			//start啟用看看
+//			try 
+//			{
+//				dtlsConnectorR.start();
+//			} catch (IOException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
 			
 			NetworkConfig config = new NetworkConfig();
 			config.setInt(NetworkConfig.Keys.PREFERRED_BLOCK_SIZE,1024);
@@ -422,11 +465,14 @@ public class testCient {
 			CoapClient client;
 			
 			client = new CoapClient(uris);
+			//client.setEndpoint(new CoapEndpoint(dtlsConnectorR, NetworkConfig.getStandard()));
+			client.setEndpoint(new CoapEndpoint(dtlsConnectorR, config));
 			
-			client.setTimeout(4000);
+			client.setTimeout(20000);
 			
 			//CoapResponse response = client.put(fileList.get(3), index);
-			CoapResponse response = client.put(document, MediaTypeRegistry.TEXT_PLAIN);
+			CoapResponse response = client.put(document, MediaTypeRegistry.APPLICATION_XML);
+			//CoapResponse response = client.put("QQ", 0);
 			
 			if (response!=null) {
 				
@@ -438,12 +484,53 @@ public class testCient {
 				// access advanced API with access to more details through .advanced()
 				System.out.println(Utils.prettyPrint(response));
 				
+				
+				dtlsConnectorR.stop();
+				//dtlsConnectorR.destroy();
+				
 			} 
 			else 
 			{
+				//dtlsConnectorR.forceResumeSessionFor(peer);
 				System.out.println("No response received.");
-			}
+				dtlsConnectorR.stop();
+				//dtlsConnectorR.destroy();
 
+				/*
+				dtlsConnectorR.stop();
+				
+				dtlsConnectorR = connector();
+				client = new CoapClient(uris);
+				client.setEndpoint(new CoapEndpoint(dtlsConnectorR, NetworkConfig.getStandard()));
+				dtlsConnectorR.start();
+				response = client.put(document, index);
+				
+				//boolean isNotNull = false ;
+				while(response!=null)
+				{
+					dtlsConnectorR.stop();
+					
+					dtlsConnectorR = connector();
+					client = new CoapClient(uris);
+					client.setEndpoint(new CoapEndpoint(dtlsConnectorR, NetworkConfig.getStandard()));
+					dtlsConnectorR.start();
+					response = client.put(document, index);
+					
+					//isNotNull = (response!=null);
+				}
+				
+				System.out.println(response.getCode());
+				System.out.println(response.getOptions());
+				System.out.println(response.getResponseText());
+				
+				System.out.println("\nADVANCED\n");
+				// access advanced API with access to more details through .advanced()
+				System.out.println(Utils.prettyPrint(response));
+				*/
+			}
+			
+			//dtlsConnectorR.stop();
+			
 			} catch (URISyntaxException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

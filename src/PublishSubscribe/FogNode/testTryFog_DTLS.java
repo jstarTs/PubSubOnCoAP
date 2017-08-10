@@ -80,7 +80,7 @@ import trial.testFilter.useXmldog;
 
 
 
-public class testTryFog extends CoapServer {
+public class testTryFog_DTLS extends CoapServer {
 
 	
 //	static {
@@ -121,7 +121,7 @@ public class testTryFog extends CoapServer {
         	// create server
             //testTryFog server = new testTryFog();
             
-            testTryFog server = new testTryFog(listSize);
+            testTryFog_DTLS server = new testTryFog_DTLS(listSize);
             
             //server.fm.setSensorNum(4);
             //server.fm.setSensorNum(Integer.parseInt(args[0]) );
@@ -183,20 +183,56 @@ public class testTryFog extends CoapServer {
      */
     private void addEndpoints() throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, UnrecoverableKeyException 
     {
+    	// Pre-shared secrets
+    	InMemoryPskStore pskStore = new InMemoryPskStore();
+    	pskStore.setKey("password", "sesame".getBytes()); // from ETSI Plugtest test spec
+
+    	// load the trust store
+    	KeyStore trustStore = KeyStore.getInstance("JKS");
+    	InputStream inTrust = testTryFog_DTLS.class.getClassLoader().getResourceAsStream(TRUST_STORE_LOCATION);
+    	trustStore.load(inTrust, TRUST_STORE_PASSWORD.toCharArray());
+
+    	// You can load multiple certificates if needed
+    	Certificate[] trustedCertificates = new Certificate[1];
+    	trustedCertificates[0] = trustStore.getCertificate("root");
+    	
+    	// load the key store
+    	KeyStore keyStore = KeyStore.getInstance("JKS");
+    	InputStream in = testTryFog_DTLS.class.getClassLoader().getResourceAsStream(KEY_STORE_LOCATION);
+    	keyStore.load(in, KEY_STORE_PASSWORD.toCharArray());
+		
     	for (InetAddress addr : EndpointManager.getEndpointManager().getNetworkInterfaces()) {
     		// only binds to IPv4 addresses and localhost
 			if (addr instanceof Inet4Address || addr.isLoopbackAddress()) {
-				InetSocketAddress bindToAddress = new InetSocketAddress(addr, COAP_PORT);
-				addEndpoint(new CoapEndpoint(bindToAddress));
+				DtlsConnectorConfig.Builder config = new DtlsConnectorConfig.Builder(new InetSocketAddress(addr,DTLS_PORT));
+				config.setSupportedCipherSuites(new CipherSuite[]{CipherSuite.TLS_PSK_WITH_AES_128_CCM_8,
+						CipherSuite.TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8});
+				config.setPskStore(pskStore);
+				config.setIdentity((PrivateKey)keyStore.getKey("server", KEY_STORE_PASSWORD.toCharArray()),
+						keyStore.getCertificateChain("server"), true);
+				config.setTrustStore(trustedCertificates);
+				//config.
+				DTLSConnector connector = new DTLSConnector(config.build());
+				
+				addEndpoint(new CoapEndpoint(connector,NetworkConfig.getStandard()));
+				
+//				InetSocketAddress bindToAddress = new InetSocketAddress(addr, COAP_PORT);
+//				addEndpoint(new CoapEndpoint(bindToAddress));
 			}
 		}
+    	
+    	// server.addEndpoint(new CoAPEndpoint(new DTLSConnector(new InetSocketAddress("::1", DTLS_PORT)), NetworkConfig.getStandard()));
+		// server.addEndpoint(new CoAPEndpoint(new DTLSConnector(new InetSocketAddress("127.0.0.1", DTLS_PORT)), NetworkConfig.getStandard()));
+		// server.addEndpoint(new CoAPEndpoint(new DTLSConnector(new InetSocketAddress("2a01:c911:0:2010::10", DTLS_PORT)), NetworkConfig.getStandard()));
+		// server.addEndpoint(new CoAPEndpoint(new DTLSConnector(new InetSocketAddress("10.200.1.2", DTLS_PORT)), NetworkConfig.getStandard()));
+
     }
 
     /*
      * Constructor for a new Hello-World server. Here, the resources
      * of the server are initialized.
      */
-    public testTryFog() throws SocketException {
+    public testTryFog_DTLS() throws SocketException {
         
         // provide an instance of a Hello-World resource
         add(new TestResource());
@@ -205,7 +241,7 @@ public class testTryFog extends CoapServer {
         add(new TestConcurrentResource("ten-threaded", 20));
     }
     
-    public testTryFog(int numberResource) throws SocketException
+    public testTryFog_DTLS(int numberResource) throws SocketException
     {
     	add(new TestResource());
     	for(int i = 1 ; i <= numberResource ; i++)
